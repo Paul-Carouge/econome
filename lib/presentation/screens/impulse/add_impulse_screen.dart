@@ -7,6 +7,27 @@ import 'package:budgethink/data/database/app_database.dart';
 import 'package:budgethink/presentation/providers/app_providers.dart';
 import 'package:budgethink/core/utils/notifications.dart';
 
+// ─── Cooldown Duration Helper ───────────────────────────────────────────
+
+Duration calculateCooldownDuration(double amount) {
+  if (amount < 10) {
+    return const Duration(hours: 48);
+  } else if (amount < 50) {
+    return const Duration(hours: 72);
+  } else if (amount < 200) {
+    return const Duration(hours: 120);
+  } else {
+    return const Duration(hours: 168);
+  }
+}
+
+int calculateCooldownDays(double amount) {
+  if (amount < 10) return 2;
+  if (amount < 50) return 3;
+  if (amount < 200) return 5;
+  return 7;
+}
+
 // ─── Icon Name Resolution ──────────────────────────────────────────────
 
 IconData resolveCategoryIcon(String iconName) {
@@ -61,7 +82,18 @@ class _AddImpulseScreenState extends ConsumerState<AddImpulseScreen> {
   bool _isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    _amountController.addListener(_onAmountChanged);
+  }
+
+  void _onAmountChanged() {
+    setState(() {}); // rebuild to show updated cooldown info text
+  }
+
+  @override
   void dispose() {
+    _amountController.removeListener(_onAmountChanged);
     _nameController.dispose();
     _amountController.dispose();
     _linkController.dispose();
@@ -178,14 +210,7 @@ class _AddImpulseScreenState extends ConsumerState<AddImpulseScreen> {
                         size: 20, color: AppTheme.amberAccent),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        'La règle des 24h s\'applique : '
-                        'vous pourrez approuver ou ignorer cet achat après '
-                        '24 heures.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.amberAccent,
-                            ),
-                      ),
+                      child: _buildCoolingInfoText(),
                     ),
                   ],
                 ),
@@ -265,6 +290,23 @@ class _AddImpulseScreenState extends ConsumerState<AddImpulseScreen> {
     );
   }
 
+  Widget _buildCoolingInfoText() {
+    final amountText = _amountController.text.trim().replaceAll(',', '.');
+    final amount = double.tryParse(amountText);
+    final days = (amount != null && amount > 0)
+        ? calculateCooldownDays(amount)
+        : null;
+
+    return Text(
+      days != null
+          ? 'La période de refroidissement est de $days jours pour ce montant.'
+          : 'La période de refroidissement dépend du montant saisi.',
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: AppTheme.amberAccent,
+          ),
+    );
+  }
+
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -272,7 +314,9 @@ class _AddImpulseScreenState extends ConsumerState<AddImpulseScreen> {
 
     try {
       final now = DateTime.now();
-      final coolingUntil = now.add(const Duration(hours: 24));
+      final amount = double.parse(
+          _amountController.text.replaceAll(',', '.'));
+      final coolingUntil = now.add(calculateCooldownDuration(amount));
 
       await ref.read(impulseDaoProvider).insert(
             ImpulseItemsCompanion(
