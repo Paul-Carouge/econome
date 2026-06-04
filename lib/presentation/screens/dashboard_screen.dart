@@ -97,38 +97,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 class _MonthlyOverviewCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboardAsync = ref.watch(dashboardDataProvider);
+    final data = ref.watch(dashboardDataProvider);
 
-    return dashboardAsync.when(
-      loading: () => _buildShimmerCard(),
-      error: (err, _) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline, color: AppTheme.redAccent, size: 32),
-              const SizedBox(height: 12),
-              Text(
-                err.toString(),
-                style: const TextStyle(color: AppTheme.zinc400, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: () => ref.invalidate(dashboardDataProvider),
-                icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Réessayer'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.amberAccent,
-                  side: const BorderSide(color: AppTheme.amberAccent),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      data: (data) => Card(
+    return Card(
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -222,61 +193,6 @@ class _MonthlyOverviewCard extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildShimmerCard() {
-    return Card(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 140,
-              height: 16,
-              decoration: BoxDecoration(
-                color: AppTheme.zinc800,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: 180,
-              height: 34,
-              decoration: BoxDecoration(
-                color: AppTheme.zinc800,
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppTheme.zinc800,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppTheme.zinc800,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -335,7 +251,7 @@ class _PieChartSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(expenseCategoriesProvider);
-    final dashboardAsync = ref.watch(dashboardDataProvider);
+    final data = ref.watch(dashboardDataProvider);
     final monthlyTx = ref.watch(monthlyTransactionsProvider);
 
     return Card(
@@ -382,7 +298,7 @@ class _PieChartSection extends ConsumerWidget {
                   }
                   return _PieChart(
                     categories: categories,
-                    dashboardAsync: dashboardAsync,
+                    data: data,
                     monthlyTransactions: monthlyTx.asData?.value ?? [],
                   );
                 },
@@ -397,12 +313,12 @@ class _PieChartSection extends ConsumerWidget {
 
 class _PieChart extends StatelessWidget {
   final List<Category> categories;
-  final AsyncValue<DashboardData> dashboardAsync;
+  final DashboardData data;
   final List<Transaction> monthlyTransactions;
 
   const _PieChart({
     required this.categories,
-    required this.dashboardAsync,
+    required this.data,
     required this.monthlyTransactions,
   });
 
@@ -419,60 +335,47 @@ class _PieChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return dashboardAsync.when(
-      loading: () => const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-      error: (_, _) => const Center(
-        child: Text(
-          'Aucune donnée',
-          style: TextStyle(color: AppTheme.zinc500),
-        ),
-      ),
-      data: (data) {
-        if (data.totalExpenses <= 0) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.savings, color: AppTheme.zinc600, size: 40),
-                const SizedBox(height: 8),
-                const Text(
-                  'Aucune dépense ce mois',
-                  style: TextStyle(color: AppTheme.zinc500),
-                ),
-              ],
-            ),
-          );
-        }
-
-        final categorySpending = _computeCategorySpending();
-
-        return Row(
+    if (data.totalExpenses <= 0) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 140,
-              height: 140,
-              child: PieChart(
-                PieChartData(
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 30,
-                  sections: _buildSections(categories, data, categorySpending),
-                  borderData: FlBorderData(show: false),
-                ),
-              ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: _buildLegend(categories, categorySpending, data.totalExpenses),
-              ),
+            Icon(Icons.savings, color: AppTheme.zinc600, size: 40),
+            const SizedBox(height: 8),
+            const Text(
+              'Aucune dépense ce mois',
+              style: TextStyle(color: AppTheme.zinc500),
             ),
           ],
-        );
-      },
+        ),
+      );
+    }
+
+    final categorySpending = _computeCategorySpending();
+
+    return Row(
+      children: [
+        SizedBox(
+          width: 140,
+          height: 140,
+          child: PieChart(
+            PieChartData(
+              sectionsSpace: 2,
+              centerSpaceRadius: 30,
+              sections: _buildSections(categories, data, categorySpending),
+              borderData: FlBorderData(show: false),
+            ),
+          ),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: _buildLegend(categories, categorySpending, data.totalExpenses),
+          ),
+        ),
+      ],
     );
   }
 
@@ -681,11 +584,19 @@ class _BudgetBarsSection extends ConsumerWidget {
               ),
               data: (budget) {
                 if (budget == null) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      'Aucun budget défini pour ce mois',
-                      style: TextStyle(color: AppTheme.zinc500),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      children: [
+                        Icon(Icons.lightbulb_outline, color: AppTheme.amberAccent, size: 18),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'Astuce : définissez un budget mensuel dans l\'onglet Budgets pour suivre vos limites.',
+                            style: TextStyle(color: AppTheme.zinc400, fontSize: 13),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }

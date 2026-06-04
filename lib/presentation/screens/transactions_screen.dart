@@ -78,12 +78,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 class _MonthTotals extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboardAsync = ref.watch(dashboardDataProvider);
+    final data = ref.watch(dashboardDataProvider);
 
-    return dashboardAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
-      data: (data) => Container(
+    return Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         decoration: BoxDecoration(
@@ -127,7 +124,6 @@ class _MonthTotals extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

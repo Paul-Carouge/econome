@@ -57,5 +57,12 @@ class AppConstants {
     'investment': Icons.trending_up,
     'insurance': Icons.verified_user,
     'other': Icons.more_horiz,
+    'car': Icons.directions_car,
+    'flight': Icons.flight,
+    'travel_explore': Icons.explore,
+    'star': Icons.star,
+    'account_balance': Icons.account_balance,
+    'shopping_cart': Icons.shopping_cart,
+    'directions_car': Icons.directions_car,
   };
 }

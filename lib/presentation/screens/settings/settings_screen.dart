@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:budgethink/core/theme/app_theme.dart';
 import 'package:budgethink/core/constants/app_constants.dart';
 import 'package:budgethink/presentation/providers/app_providers.dart';
@@ -58,6 +59,44 @@ class SettingsScreen extends ConsumerWidget {
                   _InfoRow(label: 'Base de données', value: 'Drift (SQLite)'),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ─── Links Section ───────────────────────────────────────────
+          _SectionHeader(title: 'Liens'),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.zinc800,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.code, color: AppTheme.zinc100, size: 20),
+                  ),
+                  title: const Text('GitHub'),
+                  subtitle: const Text('github.com/Paul-Carouge'),
+                  onTap: () => launchUrl(Uri.parse('https://github.com/Paul-Carouge')),
+                ),
+                const Divider(height: 1, indent: 56, color: AppTheme.zinc800),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.zinc800,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.business, color: AppTheme.zinc100, size: 20),
+                  ),
+                  title: const Text('LinkedIn'),
+                  subtitle: const Text('linkedin.com/in/pcarouge'),
+                  onTap: () => launchUrl(Uri.parse('https://linkedin.com/in/pcarouge')),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),

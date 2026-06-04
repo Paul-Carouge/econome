@@ -36,6 +36,28 @@ class BudgetsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
+            // ─── Info Card ─────────────────────────────────────────────
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: AppTheme.amberAccent, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Le budget mensuel est comparé à vos dépenses totales sur le tableau de bord. Il vous aide à voir si vous dépassez vos limites.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppTheme.zinc400,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // ─── Per-Category Budgets ──────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -77,18 +77,41 @@ final impulseActiveCountProvider = FutureProvider<int>((ref) async {
 });
 
 // ─── Dashboard Provider ───────────────────────────────────────────────
-final dashboardDataProvider = FutureProvider.autoDispose<DashboardData>((ref) async {
-  final now = DateTime.now();
-  final tDao = ref.watch(transactionDaoProvider);
-  final incomes = await tDao.getTotalIncome(now.month, now.year);
-  final expenses = await tDao.getTotalExpenses(now.month, now.year);
-
-  return DashboardData(
-    totalIncome: incomes,
-    totalExpenses: expenses,
-    balance: incomes - expenses,
-    month: now.month,
-    year: now.year,
+final dashboardDataProvider = Provider.autoDispose<DashboardData>((ref) {
+  final transactions = ref.watch(monthlyTransactionsProvider);
+  return transactions.when(
+    data: (list) {
+      double income = 0, expenses = 0;
+      for (final t in list) {
+        if (t.type == 'income') {
+          income += t.amount;
+        } else {
+          expenses += t.amount;
+        }
+      }
+      final now = DateTime.now();
+      return DashboardData(
+        totalIncome: income,
+        totalExpenses: expenses,
+        balance: income - expenses,
+        month: now.month,
+        year: now.year,
+      );
+    },
+    loading: () => DashboardData(
+      totalIncome: 0,
+      totalExpenses: 0,
+      balance: 0,
+      month: 1,
+      year: 2026,
+    ),
+    error: (_, _) => DashboardData(
+      totalIncome: 0,
+      totalExpenses: 0,
+      balance: 0,
+      month: 1,
+      year: 2026,
+    ),
   );
 });
 

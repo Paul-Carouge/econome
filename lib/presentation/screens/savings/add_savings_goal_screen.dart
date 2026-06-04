@@ -26,8 +26,8 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
   bool _isSaving = false;
 
   static const List<String> _iconOptions = [
-    'savings', 'home', 'car', 'school', 'favorite',
-    'flight', 'shopping', 'card_giftcard', 'travel_explore',
+    'savings', 'home', 'directions_car', 'school', 'favorite',
+    'flight', 'shopping_cart', 'card_giftcard', 'star', 'account_balance',
   ];
 
   static const List<int> _colorOptions = [
