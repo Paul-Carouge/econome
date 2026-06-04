@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart';
 import 'package:budgethink/core/theme/app_theme.dart';
 import 'package:budgethink/core/constants/app_constants.dart';
+import 'package:budgethink/core/utils/notifications.dart';
 import 'package:budgethink/presentation/providers/app_providers.dart';
 import 'package:budgethink/data/database/app_database.dart';
 
@@ -83,9 +84,7 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
     final targetAmount = double.tryParse(targetText);
 
     if (targetAmount == null || targetAmount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Montant cible invalide')),
-      );
+      showInfo(context, 'Montant cible invalide');
       return;
     }
 
@@ -106,16 +105,12 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
       ));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Objectif créé !')),
-        );
+        showSuccess(context, 'Objectif créé !');
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        showError(context, 'Erreur: $e');
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);

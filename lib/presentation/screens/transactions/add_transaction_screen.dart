@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:budgethink/core/theme/app_theme.dart';
 import 'package:budgethink/data/database/app_database.dart';
 import 'package:budgethink/presentation/providers/app_providers.dart';
+import 'package:budgethink/core/utils/notifications.dart';
 
 // ─── Add Transaction Screen ────────────────────────────────────────────
 
@@ -324,9 +325,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner une catégorie')),
-      );
+      showInfo(context, 'Veuillez sélectionner une catégorie');
       return;
     }
 
@@ -354,9 +353,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction ajoutée')),
-        );
+        showSuccess(context, 'Transaction ajoutée');
 
         // Pop all the way back
         final routeState = GoRouterState.of(context);
@@ -368,9 +365,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
-        );
+        showError(context, 'Erreur : $e');
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

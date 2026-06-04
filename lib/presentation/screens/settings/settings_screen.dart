@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:budgethink/core/theme/app_theme.dart';
 import 'package:budgethink/core/constants/app_constants.dart';
+import 'package:budgethink/core/utils/notifications.dart';
 import 'package:budgethink/presentation/providers/app_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -176,9 +177,7 @@ class SettingsScreen extends ConsumerWidget {
               Navigator.of(ctx).pop();
               await _resetData(ref);
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Données réinitialisées')),
-                );
+                showSuccess(context, 'Données réinitialisées');
               }
             },
             style: FilledButton.styleFrom(

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/notifications.dart';
 import '../providers/app_providers.dart';
 import '../../data/database/app_database.dart';
 
@@ -394,17 +395,13 @@ class _TransactionCard extends ConsumerWidget {
         ref.invalidate(dashboardDataProvider);
         ref.invalidate(recentTransactionsProvider);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Transaction supprimée'),
-              action: SnackBarAction(
-                label: 'Annuler',
-                textColor: AppTheme.amberAccent,
-                onPressed: () {
-                  // Re-add would require storing the full data
-                },
-              ),
-            ),
+          showSuccess(
+            context,
+            'Transaction supprimée',
+            actionLabel: 'Annuler',
+            onAction: () {
+              // Re-add would require storing the full data
+            },
           );
         }
       },

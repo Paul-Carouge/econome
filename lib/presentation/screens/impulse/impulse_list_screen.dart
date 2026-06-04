@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:budgethink/core/theme/app_theme.dart';
 import 'package:budgethink/data/database/app_database.dart';
 import 'package:budgethink/presentation/providers/app_providers.dart';
+import 'package:budgethink/core/utils/notifications.dart';
 
 // ─── Main Impulse Screen ───────────────────────────────────────────────
 
@@ -287,18 +288,14 @@ class _ImpulseCard extends ConsumerWidget {
   void _handleApprove(BuildContext context, WidgetRef ref) async {
     await ref.read(impulseDaoProvider).updateStatus(item.id, 'approved');
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Achat approuvé !')),
-      );
+      showSuccess(context, 'Achat approuvé !');
     }
   }
 
   void _handleDismiss(BuildContext context, WidgetRef ref) async {
     await ref.read(impulseDaoProvider).updateStatus(item.id, 'dismissed');
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Achat ignoré')),
-      );
+      showInfo(context, 'Achat ignoré');
     }
   }
 
