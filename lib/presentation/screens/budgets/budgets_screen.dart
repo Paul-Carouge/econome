@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:budgethink/core/theme/app_theme.dart';
 import 'package:budgethink/core/constants/app_constants.dart';
 import 'package:budgethink/presentation/providers/app_providers.dart';
@@ -26,30 +27,44 @@ class BudgetsScreen extends ConsumerWidget {
           children: [
             // ─── Total Budget Summary Card ──────────────────────────────
             budgetAsync.when(
-              data: (budget) => _BudgetSummaryCard(budget: budget),
+              data: (budget) => _BudgetSummaryCard(
+                budget: budget,
+                onTap: () => _showBudgetDialog(context, ref, budget),
+              ),
               loading: () => const _SummarySkeleton(),
               error: (e, _) => _ErrorCard(message: 'Erreur budget: $e'),
             ),
             const SizedBox(height: 24),
 
             // ─── Per-Category Budgets ──────────────────────────────────
-            Text(
-              'Budgets par catégorie',
-              style: Theme.of(context).textTheme.titleLarge,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Budgets par catégorie',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                TextButton.icon(
+                  onPressed: () => _showBudgetDialog(context, ref, null),
+                  icon: const Icon(Icons.edit, size: 18),
+                  label: const Text('Définir'),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
 
             categoriesAsync.when(
               data: (categories) {
-                final withBudgets = categories.where((c) => c.budget != null && c.budget! > 0).toList();
-                if (withBudgets.isEmpty) {
+                if (categories.isEmpty) {
                   return _EmptyBudgets();
                 }
                 return Column(
-                  children: withBudgets
+                  children: categories
                       .map((cat) => _CategoryBudgetCard(
                             category: cat,
                             transactions: monthlyTx.asData?.value ?? [],
+                            onTap: () =>
+                                _showCategoryBudgetDialog(context, ref, cat),
                           ))
                       .toList(),
                 );
@@ -63,64 +78,224 @@ class BudgetsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  // ─── Monthly Budget Dialog ─────────────────────────────────────────
+  void _showBudgetDialog(BuildContext context, WidgetRef ref, Budget? existing) {
+    final controller = TextEditingController(
+      text: existing != null
+          ? existing.totalBudget.toStringAsFixed(0)
+          : '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.zinc900,
+        title: const Text('Budget mensuel'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: 'Montant',
+            hintStyle: const TextStyle(color: AppTheme.zinc500),
+            filled: true,
+            fillColor: AppTheme.zinc800,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          style: const TextStyle(color: AppTheme.zinc100),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final text = controller.text.trim();
+              if (text.isEmpty) return;
+              final amount = double.tryParse(text);
+              if (amount == null || amount <= 0) return;
+
+              final now = DateTime.now();
+              final dao = ref.read(budgetDaoProvider);
+              await dao.upsert(BudgetsCompanion(
+                totalBudget: Value(amount),
+                month: Value(now.month),
+                year: Value(now.year),
+                createdAt: Value(now.toIso8601String()),
+              ));
+              ref.invalidate(currentBudgetProvider);
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.amberAccent,
+              foregroundColor: AppTheme.zinc950,
+            ),
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Category Budget Dialog ────────────────────────────────────────
+  void _showCategoryBudgetDialog(
+      BuildContext context, WidgetRef ref, Category category) {
+    final controller = TextEditingController(
+      text: category.budget != null && category.budget! > 0
+          ? category.budget!.toStringAsFixed(0)
+          : '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.zinc900,
+        title: Text('Budget — ${category.name}'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: 'Montant du budget',
+            hintStyle: const TextStyle(color: AppTheme.zinc500),
+            filled: true,
+            fillColor: AppTheme.zinc800,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          style: const TextStyle(color: AppTheme.zinc100),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler'),
+          ),
+          if (category.budget != null && category.budget! > 0)
+            TextButton(
+              onPressed: () async {
+                final dao = ref.read(categoryDaoProvider);
+                await dao.updateEntry(
+                  category.id,
+                  CategoriesCompanion(budget: Value(null)),
+                );
+                ref.invalidate(expenseCategoriesProvider);
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: const Text('Supprimer',
+                  style: TextStyle(color: AppTheme.redAccent)),
+            ),
+          ElevatedButton(
+            onPressed: () async {
+              final text = controller.text.trim();
+              if (text.isEmpty) return;
+              final amount = double.tryParse(text);
+              if (amount == null || amount <= 0) return;
+
+              final dao = ref.read(categoryDaoProvider);
+              await dao.updateEntry(
+                category.id,
+                CategoriesCompanion(budget: Value(amount)),
+              );
+              ref.invalidate(expenseCategoriesProvider);
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.amberAccent,
+              foregroundColor: AppTheme.zinc950,
+            ),
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─── Summary Card ──────────────────────────────────────────────────────
 
 class _BudgetSummaryCard extends StatelessWidget {
   final Budget? budget;
+  final VoidCallback onTap;
 
-  const _BudgetSummaryCard({required this.budget});
+  const _BudgetSummaryCard({required this.budget, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final totalBudget = budget?.totalBudget ?? 0.0;
-    // Monthly total spent from categories — we'll compute from categories budget data
     return Card(
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.amberAccent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.amberAccent.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet,
+                      color: AppTheme.amberAccent,
+                      size: 24,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.account_balance_wallet,
-                    color: AppTheme.amberAccent,
-                    size: 24,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Budget mensuel',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          totalBudget > 0
+                              ? AppConstants.formatAmountPlain(totalBudget)
+                              : 'Non défini',
+                          style: Theme.of(context)
+                              .textTheme
+                              .displaySmall
+                              ?.copyWith(
+                                color: AppTheme.zinc100,
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Budget mensuel',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        totalBudget > 0
-                            ? AppConstants.formatAmountPlain(totalBudget)
-                            : 'Non défini',
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                              color: AppTheme.zinc100,
-                            ),
-                      ),
-                    ],
+                  const Icon(Icons.edit, color: AppTheme.zinc500, size: 20),
+                ],
+              ),
+              if (totalBudget <= 0) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onTap,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Définir un budget mensuel'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.amberAccent,
+                      side: const BorderSide(color: AppTheme.amberAccent),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
               ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -168,80 +343,92 @@ class _SummarySkeleton extends StatelessWidget {
 class _CategoryBudgetCard extends StatelessWidget {
   final Category category;
   final List<Transaction> transactions;
+  final VoidCallback onTap;
 
   const _CategoryBudgetCard({
     required this.category,
     required this.transactions,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final budgetAmount = category.budget ?? 0;
     final spent = transactions
-        .where((t) =>
-            t.categoryId == category.id && t.type == 'expense')
+        .where((t) => t.categoryId == category.id && t.type == 'expense')
         .fold<double>(0, (sum, t) => sum + t.amount);
-    final progress = budgetAmount > 0 ? (spent / budgetAmount).clamp(0.0, 1.0) : 0.0;
+    final progress =
+        budgetAmount > 0 ? (spent / budgetAmount).clamp(0.0, 1.0) : 0.0;
     final isOverBudget = spent > budgetAmount && budgetAmount > 0;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  AppConstants.categoryIcons[category.icon] ?? Icons.category,
-                  color: Color(category.color),
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    category.name,
-                    style: Theme.of(context).textTheme.titleMedium,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    AppConstants.categoryIcons[category.icon] ??
+                        Icons.category,
+                    color: Color(category.color),
+                    size: 20,
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      AppConstants.formatAmountPlain(spent),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: isOverBudget
-                                ? AppTheme.redAccent
-                                : AppTheme.zinc100,
-                          ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      category.name,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    Text(
-                      '/ ${AppConstants.formatAmountPlain(budgetAmount)}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 8,
-                backgroundColor: AppTheme.zinc800,
-                color: isOverBudget ? AppTheme.redAccent : AppTheme.amberAccent,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        AppConstants.formatAmountPlain(spent),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                              color: isOverBudget
+                                  ? AppTheme.redAccent
+                                  : AppTheme.zinc100,
+                            ),
+                      ),
+                      Text(
+                        '/ ${AppConstants.formatAmountPlain(budgetAmount)}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              '${(progress * 100).toStringAsFixed(0)}% utilisé',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isOverBudget ? AppTheme.redAccent : AppTheme.zinc400,
-                  ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 8,
+                  backgroundColor: AppTheme.zinc800,
+                  color:
+                      isOverBudget ? AppTheme.redAccent : AppTheme.amberAccent,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${(progress * 100).toStringAsFixed(0)}% utilisé',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color:
+                          isOverBudget ? AppTheme.redAccent : AppTheme.zinc400,
+                    ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -272,7 +459,7 @@ class _EmptyBudgets extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Modifiez une catégorie depuis la section\ntransactions pour définir un budget.',
+              'Appuyez sur "Définir" ci-dessus pour ajouter un budget par catégorie.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),
@@ -289,54 +476,60 @@ class _CategoryListSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: List.generate(3, (_) => Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 20, height: 20,
-                    decoration: BoxDecoration(
-                      color: AppTheme.zinc800,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Container(
-                      height: 16, width: 100,
+      children: List.generate(
+        3,
+        (_) => Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 20,
+                      height: 20,
                       decoration: BoxDecoration(
                         color: AppTheme.zinc800,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                  ),
-                  Container(
-                    height: 16, width: 80,
-                    decoration: BoxDecoration(
-                      color: AppTheme.zinc800,
-                      borderRadius: BorderRadius.circular(4),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        height: 16,
+                        width: 100,
+                        decoration: BoxDecoration(
+                          color: AppTheme.zinc800,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                height: 8,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppTheme.zinc800,
-                  borderRadius: BorderRadius.circular(6),
+                    Container(
+                      height: 16,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: AppTheme.zinc800,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Container(
+                  height: 8,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppTheme.zinc800,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 }

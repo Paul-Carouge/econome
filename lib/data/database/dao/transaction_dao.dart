@@ -55,7 +55,9 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
               t.type.equals('income') &
               t.date.isBetweenValues(start, end)))
         .get();
-    return rows.map((t) => t.amount).reduce((a, b) => a + b);
+    double total = 0;
+    for (final t in rows) total += t.amount;
+    return total;
   }
 
   Future<double> getTotalExpenses(int month, int year) async {
@@ -66,7 +68,9 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
               t.type.equals('expense') &
               t.date.isBetweenValues(start, end)))
         .get();
-    return rows.map((t) => t.amount).reduce((a, b) => a + b);
+    double total = 0;
+    for (final t in rows) total += t.amount;
+    return total;
   }
 
   Future<Map<int, double>> getExpensesByCategory(int month, int year) async {

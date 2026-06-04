@@ -104,9 +104,27 @@ class _MonthlyOverviewCard extends ConsumerWidget {
       error: (err, _) => Card(
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Text(
-            'Erreur de chargement',
-            style: TextStyle(color: AppTheme.zinc400),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline, color: AppTheme.redAccent, size: 32),
+              const SizedBox(height: 12),
+              Text(
+                err.toString(),
+                style: const TextStyle(color: AppTheme.zinc400, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => ref.invalidate(dashboardDataProvider),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Réessayer'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.amberAccent,
+                  side: const BorderSide(color: AppTheme.amberAccent),
+                ),
+              ),
+            ],
           ),
         ),
       ),
