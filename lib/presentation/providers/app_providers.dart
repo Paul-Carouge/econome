@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:budgethink/data/database/app_database.dart';
-import 'package:budgethink/data/database/database_builder.dart';
-import 'package:budgethink/data/database/dao/category_dao.dart';
-import 'package:budgethink/data/database/dao/transaction_dao.dart';
-import 'package:budgethink/data/database/dao/budget_dao.dart';
-import 'package:budgethink/data/database/dao/savings_dao.dart';
-import 'package:budgethink/data/database/dao/impulse_dao.dart';
+import 'package:econome/data/database/app_database.dart';
+import 'package:econome/data/database/database_builder.dart';
+import 'package:econome/data/database/dao/category_dao.dart';
+import 'package:econome/data/database/dao/transaction_dao.dart';
+import 'package:econome/data/database/dao/budget_dao.dart';
+import 'package:econome/data/database/dao/savings_dao.dart';
+import 'package:econome/data/database/dao/impulse_dao.dart';
 
 // ─── Database Provider ───────────────────────────────────────────────
 final databaseProvider = Provider<AppDatabase>((ref) => buildDatabase());

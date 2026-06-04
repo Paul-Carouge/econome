@@ -16,7 +16,7 @@ class CategorySeed {
 
   static const List<Map<String, dynamic>> onboardingSlides = [
     {
-      'title': 'Bienvenue sur Budgethink',
+      'title': 'Bienvenue sur Économe',
       'subtitle': 'Prenez le contrôle de vos finances. Simple, rapide, efficace.',
       'icon': 'savings',
       'color': 0xFFF59E0B,

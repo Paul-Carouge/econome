@@ -1,4 +1,4 @@
-package com.budgethink.budgethink
+package com.econome.app
 
 import io.flutter.embedding.android.FlutterActivity
 

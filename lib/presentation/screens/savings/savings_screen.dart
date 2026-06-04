@@ -3,10 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
-import 'package:budgethink/core/theme/app_theme.dart';
-import 'package:budgethink/core/constants/app_constants.dart';
-import 'package:budgethink/presentation/providers/app_providers.dart';
-import 'package:budgethink/data/database/app_database.dart';
+import 'package:econome/core/theme/app_theme.dart';
+import 'package:econome/core/constants/app_constants.dart';
+import 'package:econome/presentation/providers/app_providers.dart';
+import 'package:econome/data/database/app_database.dart';
+import 'package:econome/core/utils/notifications.dart';
 
 class SavingsScreen extends ConsumerWidget {
   const SavingsScreen({super.key});
@@ -38,6 +39,8 @@ class SavingsScreen extends ConsumerWidget {
               return _SavingsGoalCard(
                 goal: goal,
                 onTap: () => _showContributeSheet(context, ref, goal),
+                onEdit: () => context.push('/savings/edit', extra: goal),
+                onDelete: () => _confirmDelete(context, ref, goal),
               );
             },
           );
@@ -150,6 +153,37 @@ class SavingsScreen extends ConsumerWidget {
       );
     }
   }
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, SavingsGoal goal) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer l\'objectif'),
+        content: Text('Êtes-vous sûr de vouloir supprimer « ${goal.name} » ?\n\nCette action est irréversible.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppTheme.redAccent,
+            ),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(savingsDaoProvider).deleteEntry(goal.id);
+      if (context.mounted) {
+        HapticFeedback.heavyImpact();
+        showSuccess(context, 'Objectif supprimé');
+      }
+    }
+  }
 }
 
 // ─── Savings Goal Card ─────────────────────────────────────────────────
@@ -157,10 +191,14 @@ class SavingsScreen extends ConsumerWidget {
 class _SavingsGoalCard extends StatelessWidget {
   final SavingsGoal goal;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const _SavingsGoalCard({
     required this.goal,
     required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   @override
@@ -232,6 +270,38 @@ class _SavingsGoalCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ),
+                  PopupMenuButton<String>(
+                    icon: Icon(
+                      Icons.more_horiz,
+                      color: AppTheme.zinc400,
+                    ),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit': onEdit();
+                        case 'delete': onDelete();
+                      }
+                    },
+                    itemBuilder: (ctx) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: ListTile(
+                          leading: Icon(Icons.edit_outlined),
+                          title: Text('Modifier'),
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: ListTile(
+                          leading: Icon(Icons.delete_outline, color: AppTheme.redAccent),
+                          title: Text('Supprimer', style: TextStyle(color: AppTheme.redAccent)),
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

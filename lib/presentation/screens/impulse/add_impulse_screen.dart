@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
-import 'package:budgethink/core/theme/app_theme.dart';
-import 'package:budgethink/data/database/app_database.dart';
-import 'package:budgethink/presentation/providers/app_providers.dart';
-import 'package:budgethink/core/utils/notifications.dart';
+import 'package:econome/core/theme/app_theme.dart';
+import 'package:econome/data/database/app_database.dart';
+import 'package:econome/presentation/providers/app_providers.dart';
+import 'package:econome/core/utils/notifications.dart';
 
 // ─── Cooldown Duration Helper ───────────────────────────────────────────
 

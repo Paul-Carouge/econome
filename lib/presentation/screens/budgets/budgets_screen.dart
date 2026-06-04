@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
-import 'package:budgethink/core/theme/app_theme.dart';
-import 'package:budgethink/core/constants/app_constants.dart';
-import 'package:budgethink/presentation/providers/app_providers.dart';
-import 'package:budgethink/data/database/app_database.dart';
+import 'package:econome/core/theme/app_theme.dart';
+import 'package:econome/core/constants/app_constants.dart';
+import 'package:econome/presentation/providers/app_providers.dart';
+import 'package:econome/data/database/app_database.dart';
 
 class BudgetsScreen extends ConsumerWidget {
   const BudgetsScreen({super.key});

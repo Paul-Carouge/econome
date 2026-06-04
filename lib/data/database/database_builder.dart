@@ -8,7 +8,7 @@ import 'app_database.dart';
 AppDatabase buildDatabase() {
   return AppDatabase(LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'budgethink.db'));
+    final file = File(p.join(dbFolder.path, 'econome.db'));
     return NativeDatabase(file);
   }));
 }

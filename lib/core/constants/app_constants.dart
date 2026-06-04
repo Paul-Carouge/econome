@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'Budgethink';
+  static const String appName = 'Économe';
   static const String appTagline = 'Think before you spend';
 
   // ─── Currency ─────────────────────────────────────────────────────

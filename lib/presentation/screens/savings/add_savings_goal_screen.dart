@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart';
-import 'package:budgethink/core/theme/app_theme.dart';
-import 'package:budgethink/core/constants/app_constants.dart';
-import 'package:budgethink/core/utils/notifications.dart';
-import 'package:budgethink/presentation/providers/app_providers.dart';
-import 'package:budgethink/data/database/app_database.dart';
+import 'package:econome/core/theme/app_theme.dart';
+import 'package:econome/core/constants/app_constants.dart';
+import 'package:econome/core/utils/notifications.dart';
+import 'package:econome/presentation/providers/app_providers.dart';
+import 'package:econome/data/database/app_database.dart';
 
 class AddSavingsGoalScreen extends ConsumerStatefulWidget {
-  const AddSavingsGoalScreen({super.key});
+  final SavingsGoal? existingGoal;
+
+  const AddSavingsGoalScreen({super.key, this.existingGoal});
 
   @override
   ConsumerState<AddSavingsGoalScreen> createState() => _AddSavingsGoalScreenState();
@@ -25,6 +27,27 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
   int _selectedColor = 0xFFF59E0B;
   DateTime? _selectedDeadline;
   bool _isSaving = false;
+
+  bool get _isEditing => widget.existingGoal != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final goal = widget.existingGoal;
+    if (goal != null) {
+      _nameController.text = goal.name;
+      _targetController.text = goal.targetAmount.toStringAsFixed(2).replaceAll('.',',');
+      _selectedIcon = goal.icon;
+      _selectedColor = goal.color;
+      if (goal.notes != null) _notesController.text = goal.notes!;
+      if (goal.deadline != null) {
+        _selectedDeadline = DateTime.tryParse(goal.deadline!);
+        if (_selectedDeadline != null) {
+          _deadlineController.text = AppConstants.formatDate(_selectedDeadline!);
+        }
+      }
+    }
+  }
 
   static const List<String> _iconOptions = [
     'savings', 'home', 'directions_car', 'school', 'favorite',
@@ -91,22 +114,37 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final now = DateTime.now();
-      await ref.read(savingsDaoProvider).insert(SavingsGoalsCompanion(
-        name: Value(name),
-        targetAmount: Value(targetAmount),
-        currentAmount: const Value(0.0),
-        deadline: Value(_selectedDeadline?.toIso8601String()),
-        icon: Value(_selectedIcon),
-        color: Value(_selectedColor),
-        notes: Value(_notesController.text.trim().isEmpty ? null : _notesController.text.trim()),
-        createdAt: Value(now.toIso8601String()),
-        isCompleted: const Value(false),
-      ));
-
-      if (mounted) {
-        showSuccess(context, 'Objectif créé !');
-        context.pop();
+      if (_isEditing) {
+        final goal = widget.existingGoal!;
+        await ref.read(savingsDaoProvider).updateEntry(goal.id, SavingsGoalsCompanion(
+          name: Value(name),
+          targetAmount: Value(targetAmount),
+          deadline: Value(_selectedDeadline?.toIso8601String()),
+          icon: Value(_selectedIcon),
+          color: Value(_selectedColor),
+          notes: Value(_notesController.text.trim().isEmpty ? null : _notesController.text.trim()),
+        ));
+        if (mounted) {
+          showSuccess(context, 'Objectif modifié !');
+          context.pop();
+        }
+      } else {
+        final now = DateTime.now();
+        await ref.read(savingsDaoProvider).insert(SavingsGoalsCompanion(
+          name: Value(name),
+          targetAmount: Value(targetAmount),
+          currentAmount: const Value(0.0),
+          deadline: Value(_selectedDeadline?.toIso8601String()),
+          icon: Value(_selectedIcon),
+          color: Value(_selectedColor),
+          notes: Value(_notesController.text.trim().isEmpty ? null : _notesController.text.trim()),
+          createdAt: Value(now.toIso8601String()),
+          isCompleted: const Value(false),
+        ));
+        if (mounted) {
+          showSuccess(context, 'Objectif créé !');
+          context.pop();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -121,7 +159,7 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nouvel objectif'),
+        title: Text(_isEditing ? 'Modifier l\'objectif' : 'Nouvel objectif'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -274,7 +312,7 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
                           color: AppTheme.zinc950,
                         ),
                       )
-                    : const Text('Créer l\'objectif'),
+                    : Text(_isEditing ? 'Enregistrer' : 'Créer l\'objectif'),
               ),
             ),
             const SizedBox(height: 24),

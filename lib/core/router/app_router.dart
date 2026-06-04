@@ -12,7 +12,7 @@ import '../../presentation/screens/transactions/add_transaction_screen.dart';
 import '../../presentation/screens/savings/add_savings_goal_screen.dart';
 import '../../presentation/screens/impulse/impulse_list_screen.dart';
 import '../../presentation/screens/impulse/add_impulse_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/database/app_database.dart';
 
 // Provider exposé par main.dart
 final onboardingCompleteProvider = Provider<bool>((ref) {
@@ -143,6 +143,14 @@ GoRouter _buildRouter(bool onboardingComplete) {
         path: '/savings/add',
         name: 'add-savings',
         builder: (context, state) => const AddSavingsGoalScreen(),
+      ),
+      GoRoute(
+        path: '/savings/edit',
+        name: 'edit-savings',
+        builder: (context, state) {
+          final goal = state.extra as SavingsGoal?;
+          return AddSavingsGoalScreen(existingGoal: goal);
+        },
       ),
       GoRoute(
         path: '/impulse',

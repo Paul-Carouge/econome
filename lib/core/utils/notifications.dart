@@ -4,9 +4,9 @@ import '../theme/app_theme.dart';
 
 enum ToastType { success, error, info }
 
-/// Affiche un toast élégant dans le thème Budgethink.
-/// Utilisation : `showBudgethinkToast(context, 'Transaction ajoutée', ToastType.success);`
-void showBudgethinkToast(
+/// Affiche un toast élégant dans le thème Économe.
+/// Utilisation : `showAppToast(context, 'Transaction ajoutée', ToastType.success);`
+void showAppToast(
   BuildContext context,
   String message, {
   ToastType type = ToastType.info,
@@ -89,15 +89,15 @@ void showBudgethinkToast(
 
 /// Helper pour les toasts de succès
 void showSuccess(BuildContext context, String message, {String? actionLabel, VoidCallback? onAction}) {
-  showBudgethinkToast(context, message, type: ToastType.success, actionLabel: actionLabel, onAction: onAction);
+  showAppToast(context, message, type: ToastType.success, actionLabel: actionLabel, onAction: onAction);
 }
 
 /// Helper pour les toasts d'erreur
 void showError(BuildContext context, String message) {
-  showBudgethinkToast(context, message, type: ToastType.error, duration: const Duration(seconds: 4));
+  showAppToast(context, message, type: ToastType.error, duration: const Duration(seconds: 4));
 }
 
 /// Helper pour les toasts d'information
 void showInfo(BuildContext context, String message, {String? actionLabel, VoidCallback? onAction}) {
-  showBudgethinkToast(context, message, type: ToastType.info, actionLabel: actionLabel, onAction: onAction);
+  showAppToast(context, message, type: ToastType.info, actionLabel: actionLabel, onAction: onAction);
 }

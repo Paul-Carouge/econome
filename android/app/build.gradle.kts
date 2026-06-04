@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.budgethink.budgethink"
+    namespace = "com.econome.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.budgethink.budgethink"
+        applicationId = "com.econome.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

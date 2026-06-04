@@ -26,7 +26,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Scaffold(
       backgroundColor: AppTheme.zinc950,
       appBar: AppBar(
-        title: const Text('Budgethink'),
+        title: const Text('Économe'),
         actions: [
           IconButton(
             icon: const Icon(Icons.trending_up_outlined),

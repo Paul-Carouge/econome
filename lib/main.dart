@@ -37,7 +37,7 @@ void main() async {
       overrides: [
         onboardingCompleteProvider.overrideWithValue(onboardingComplete),
       ],
-      child: const BudgethinkApp(),
+      child: const EconomeApp(),
     ),
   );
 }
@@ -51,15 +51,15 @@ Future<void> _initSeedData(AppDatabase db) async {
   }
 }
 
-class BudgethinkApp extends ConsumerWidget {
-  const BudgethinkApp({super.key});
+class EconomeApp extends ConsumerWidget {
+  const EconomeApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'Budgethink',
+      title: 'Économe',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
       darkTheme: AppTheme.dark,

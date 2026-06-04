@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:budgethink/core/theme/app_theme.dart';
-import 'package:budgethink/core/constants/app_constants.dart';
-import 'package:budgethink/core/utils/notifications.dart';
-import 'package:budgethink/presentation/providers/app_providers.dart';
+import 'package:econome/core/theme/app_theme.dart';
+import 'package:econome/core/constants/app_constants.dart';
+import 'package:econome/core/utils/notifications.dart';
+import 'package:econome/presentation/providers/app_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -136,7 +136,7 @@ class SettingsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Budgethink vous aide à suivre vos finances personnelles '
+                    'Économe vous aide à suivre vos finances personnelles '
                     'et à prendre de meilleures décisions d\'achat.',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
