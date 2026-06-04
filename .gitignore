@@ -1,0 +1,28 @@
+# Flutter build output
+build/
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android artifacts (not from build/)
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# iOS
+*.ipa
+*.dSYM.zip
+*.dSYM

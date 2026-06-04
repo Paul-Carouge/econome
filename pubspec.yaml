@@ -1,0 +1,60 @@
+name: budgethink
+description: "Budgethink — Track your spending, save money, and think twice before every purchase."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Local database
+  drift: ^2.25.1
+  sqlite3_flutter_libs: ^0.5.28
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # Charts
+  fl_chart: ^0.70.2
+
+  # Formatting & locale
+  intl: ^0.20.2
+  shared_preferences: ^2.5.3
+
+  # Animations
+  flutter_animate: ^4.5.2
+
+  # UI helpers
+  google_fonts: ^6.2.1
+
+  # Notifications
+  flutter_local_notifications: ^18.0.1
+  material_color_utilities: ^0.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Code generation
+  build_runner: ^2.4.15
+  drift_dev: ^2.25.2
+  riverpod_generator: ^2.6.3
+  riverpod_lint: ^2.6.3
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/illustrations/
