@@ -12,6 +12,12 @@ import '../../presentation/screens/transactions/add_transaction_screen.dart';
 import '../../presentation/screens/savings/add_savings_goal_screen.dart';
 import '../../presentation/screens/impulse/impulse_list_screen.dart';
 import '../../presentation/screens/impulse/add_impulse_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Provider exposé par main.dart
+final onboardingCompleteProvider = Provider<bool>((ref) {
+  throw UnimplementedError('Override in main()');
+});
 
 class _ShellScaffold extends StatelessWidget {
   final Widget child;
@@ -85,12 +91,13 @@ class _ShellScaffold extends StatelessWidget {
 // ─── Router ───────────────────────────────────────────────────────────
 
 final routerProvider = Provider<GoRouter>((ref) {
-  return _buildRouter();
+  final onboardingComplete = ref.watch(onboardingCompleteProvider);
+  return _buildRouter(onboardingComplete);
 });
 
-GoRouter _buildRouter() {
+GoRouter _buildRouter(bool onboardingComplete) {
   return GoRouter(
-    initialLocation: '/onboarding',
+    initialLocation: onboardingComplete ? '/home/dashboard' : '/onboarding',
     routes: [
       GoRoute(
         path: '/onboarding',
