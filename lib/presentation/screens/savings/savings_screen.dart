@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:budgethink/core/theme/app_theme.dart';
 import 'package:budgethink/core/constants/app_constants.dart';
 import 'package:budgethink/presentation/providers/app_providers.dart';
@@ -60,9 +62,9 @@ class SavingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showContributeSheet(BuildContext context, WidgetRef ref, SavingsGoal goal) {
+  Future<void> _showContributeSheet(BuildContext context, WidgetRef ref, SavingsGoal goal) async {
     final amountController = TextEditingController();
-    showModalBottomSheet(
+    final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) {
@@ -117,7 +119,7 @@ class SavingsScreen extends ConsumerWidget {
                     final amount = double.tryParse(amountController.text.replaceAll(',', '.'));
                     if (amount == null || amount <= 0) return;
                     ref.read(savingsDaoProvider).addContribution(goal.id, amount);
-                    Navigator.of(ctx).pop();
+                    Navigator.of(ctx).pop(true); // pop with true = confetti!
                   },
                   child: const Text('Ajouter'),
                 ),
@@ -128,6 +130,25 @@ class SavingsScreen extends ConsumerWidget {
         );
       },
     );
+
+    if (result == true && context.mounted) {
+      HapticFeedback.heavyImpact();
+      Confetti.launch(
+        context,
+        options: ConfettiOptions(
+          particleCount: 60,
+          colors: const [
+            AppTheme.amberAccent,
+            AppTheme.amberLight,
+            AppTheme.greenAccent,
+            AppTheme.zinc300,
+            Color(0xFFF97316),
+          ],
+          spread: 120,
+          startVelocity: 40,
+        ),
+      );
+    }
   }
 }
 
