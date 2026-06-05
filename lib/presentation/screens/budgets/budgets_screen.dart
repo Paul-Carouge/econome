@@ -162,7 +162,10 @@ class BudgetsScreen extends ConsumerWidget {
               if (ctx.mounted) {
                 result.when(
                   onSuccess: (_) => Navigator.pop(ctx),
-                  onFailure: (error) => showError(context, 'Erreur: ${error.message}'),
+                  onFailure: (_) {
+                    Navigator.pop(ctx);
+                    showError(context, 'Impossible de modifier le budget. Réessayez.');
+                  },
                 );
               }
             },
@@ -223,7 +226,7 @@ class BudgetsScreen extends ConsumerWidget {
                 if (ctx.mounted) {
                   result.when(
                     onSuccess: (_) => Navigator.pop(ctx),
-                    onFailure: (error) => showError(context, 'Erreur: ${error.message}'),
+                    onFailure: (_) => showError(context, 'Impossible de supprimer le budget. Réessayez.'),
                   );
                 }
               },
@@ -246,7 +249,7 @@ class BudgetsScreen extends ConsumerWidget {
               if (ctx.mounted) {
                 result.when(
                   onSuccess: (_) => Navigator.pop(ctx),
-                  onFailure: (error) => showError(context, 'Erreur: ${error.message}'),
+                  onFailure: (_) => showError(context, 'Impossible de modifier le budget. Réessayez.'),
                 );
               }
             },
