@@ -1,7 +1,7 @@
 name: econome
-description: "Économe — Track your spending, save money, and think twice before every purchase."
+description: "Économe par Paul Carouge — Application de finances personnelles. Suivi des dépenses, budget mensuel, épargne, anti-achat impulsif. 100% locale, gratuite, open source."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.2.2+1
 
 environment:
   sdk: ^3.12.1

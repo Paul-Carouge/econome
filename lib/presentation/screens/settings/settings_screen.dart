@@ -18,28 +18,26 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ─── About Section ───────────────────────────────────────────
-          _SectionHeader(title: 'À propos'),
-          const SizedBox(height: 8),
+          // ─── App Info Card ──────────────────────────────────────────
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 72,
+                    height: 72,
                     decoration: BoxDecoration(
                       color: AppTheme.amberAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                     child: const Icon(
                       Icons.savings,
                       color: AppTheme.amberAccent,
-                      size: 36,
+                      size: 40,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Text(
                     AppConstants.appName,
                     style: Theme.of(context).textTheme.headlineMedium,
@@ -52,12 +50,46 @@ class SettingsScreen extends ConsumerWidget {
                           fontStyle: FontStyle.italic,
                         ),
                   ),
-                  const SizedBox(height: 16),
-                  _InfoRow(label: 'Version', value: '1.0.0'),
+                  const SizedBox(height: 18),
+                  _InfoRow(label: 'Version', value: 'v${AppConstants.appVersion}'),
                   const SizedBox(height: 4),
-                  _InfoRow(label: 'Développé avec', value: 'Flutter & Dart'),
+                  _InfoRow(label: 'Développeur', value: AppConstants.appAuthor),
                   const SizedBox(height: 4),
-                  _InfoRow(label: 'Base de données', value: 'Drift (SQLite)'),
+                  _InfoRow(label: 'Stack', value: 'Flutter, Riverpod, Drift'),
+                  const SizedBox(height: 4),
+                  _InfoRow(label: 'Stockage', value: '100% local (SQLite)'),
+                  const SizedBox(height: 4),
+                  _InfoRow(label: 'Licence', value: 'MIT — Open Source'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ─── Features Section ─────────────────────────────────────────
+          _SectionHeader(title: 'Fonctionnalités'),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _FeatureRow(Icons.dashboard, 'Tableau de bord mensuel'),
+                  const SizedBox(height: 10),
+                  _FeatureRow(Icons.receipt_long, 'Transactions — revenus et dépenses'),
+                  const SizedBox(height: 10),
+                  _FeatureRow(Icons.account_balance_wallet, 'Budget mensuel avec suivi visuel'),
+                  const SizedBox(height: 10),
+                  _FeatureRow(Icons.savings, 'Objectifs d\'épargne'),
+                  const SizedBox(height: 10),
+                  _FeatureRow(Icons.auto_awesome, 'Anti-achat impulsif avec cooling period'),
+                  const SizedBox(height: 10),
+                  _FeatureRow(Icons.search, 'Recherche et filtres'),
+                  const SizedBox(height: 10),
+                  _FeatureRow(Icons.file_download, 'Export CSV des transactions'),
+                  const SizedBox(height: 10),
+                  _FeatureRow(Icons.notifications_active, 'Notifications de fin de cooling'),
                 ],
               ),
             ),
@@ -79,7 +111,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     child: const Icon(Icons.code, color: AppTheme.zinc100, size: 20),
                   ),
-                  title: const Text('GitHub'),
+                  title: const Text('GitHub — Code source'),
                   subtitle: const Text('github.com/Paul-Carouge'),
                   onTap: () => launchUrl(Uri.parse('https://github.com/Paul-Carouge')),
                 ),
@@ -91,9 +123,23 @@ class SettingsScreen extends ConsumerWidget {
                       color: AppTheme.zinc800,
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    child: const Icon(Icons.download, color: AppTheme.zinc100, size: 20),
+                  ),
+                  title: const Text('Télécharger l\'APK'),
+                  subtitle: const Text('Dernière release sur GitHub'),
+                  onTap: () => launchUrl(Uri.parse('https://github.com/Paul-Carouge/econome/releases')),
+                ),
+                const Divider(height: 1, indent: 56, color: AppTheme.zinc800),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.zinc800,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: const Icon(Icons.business, color: AppTheme.zinc100, size: 20),
                   ),
-                  title: const Text('LinkedIn'),
+                  title: const Text('LinkedIn — Paul Carouge'),
                   subtitle: const Text('linkedin.com/in/pcarouge'),
                   onTap: () => launchUrl(Uri.parse('https://linkedin.com/in/pcarouge')),
                 ),
@@ -126,7 +172,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // ─── About / Credits Section ─────────────────────────────────
+          // ─── Credits Section ─────────────────────────────────────────
           _SectionHeader(title: 'Crédits'),
           const SizedBox(height: 8),
           Card(
@@ -136,15 +182,29 @@ class SettingsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Économe vous aide à suivre vos finances personnelles '
-                    'et à prendre de meilleures décisions d\'achat.',
+                    '${AppConstants.appName} v${AppConstants.appVersion}',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: AppTheme.zinc200,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Conçue et développée par ${AppConstants.appAuthor}.',
                     style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppConstants.appDescription,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.zinc400,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Fait avec ❤️ pour une meilleure gestion financière.',
+                    '© ${DateTime.now().year} Paul Carouge — MIT License',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppTheme.zinc500,
+                          fontStyle: FontStyle.italic,
                         ),
                   ),
                 ],
@@ -236,6 +296,29 @@ class _InfoRow extends StatelessWidget {
         ),
         Text(
           value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.zinc300,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FeatureRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _FeatureRow(this.icon, this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: AppTheme.amberAccent, size: 18),
+        const SizedBox(width: 10),
+        Text(
+          label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppTheme.zinc300,
               ),

@@ -6,6 +6,15 @@ class AppConstants {
 
   static const String appName = 'Économe';
   static const String appTagline = 'Think before you spend';
+  static const String appVersion = '1.2.2';
+  static const String appDescription =
+      'Économe est une application de finances personnelles conçue par Paul Carouge. '
+      'Suivez vos dépenses, gérez votre budget mensuel, épargnez pour vos objectifs, '
+      'et maîtrisez vos achats impulsifs grâce à une période de refroidissement intelligente. '
+      '100% locale, gratuite, sans publicité.';
+  static const String appAuthor = 'Paul Carouge';
+  static const String appAuthorLinkedIn = 'linkedin.com/in/pcarouge';
+  static const String appAuthorGitHub = 'github.com/Paul-Carouge';
 
   // ─── Currency ─────────────────────────────────────────────────────
   static String get defaultCurrencySymbol => '€';
