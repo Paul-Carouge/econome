@@ -29,10 +29,17 @@ class BudgetsScreen extends ConsumerWidget {
           children: [
             // ─── Total Budget Summary Card ──────────────────────────────
             budgetAsync.when(
-              data: (budget) => _BudgetSummaryCard(
-                budget: budget,
-                onTap: () => _showBudgetDialog(context, ref, budget),
-              ),
+              data: (budget) {
+                final spent = monthlyTx.asData?.value
+                        .where((t) => t.type == 'expense')
+                        .fold<double>(0, (sum, t) => sum + t.amount) ??
+                    0.0;
+                return _BudgetSummaryCard(
+                  budget: budget,
+                  monthlySpent: spent,
+                  onTap: () => _showBudgetDialog(context, ref, budget),
+                );
+              },
               loading: () => const _SummarySkeleton(),
               error: (e, _) => _ErrorCard(message: 'Erreur budget: $e'),
             ),
@@ -259,13 +266,33 @@ class BudgetsScreen extends ConsumerWidget {
 
 class _BudgetSummaryCard extends StatelessWidget {
   final Budget? budget;
+  final double monthlySpent;
   final VoidCallback onTap;
 
-  const _BudgetSummaryCard({required this.budget, required this.onTap});
+  const _BudgetSummaryCard({
+    required this.budget,
+    required this.monthlySpent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final totalBudget = budget?.totalBudget ?? 0.0;
+    final hasBudget = totalBudget > 0;
+    final progress =
+        hasBudget ? (monthlySpent / totalBudget).clamp(0.0, 1.0) : 0.0;
+    final isOverBudget = hasBudget && monthlySpent > totalBudget;
+    final isNearLimit = hasBudget && !isOverBudget && (monthlySpent / totalBudget) >= 0.8;
+
+    Color progressColor;
+    if (isOverBudget) {
+      progressColor = AppTheme.redAccent;
+    } else if (isNearLimit) {
+      progressColor = AppTheme.orangeAccent;
+    } else {
+      progressColor = AppTheme.amberAccent;
+    }
+
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -301,7 +328,7 @@ class _BudgetSummaryCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          totalBudget > 0
+                          hasBudget
                               ? AppConstants.formatAmountPlain(totalBudget)
                               : 'Non défini',
                           style: Theme.of(context)
@@ -317,7 +344,78 @@ class _BudgetSummaryCard extends StatelessWidget {
                   const Icon(Icons.edit, color: AppTheme.zinc500, size: 20),
                 ],
               ),
-              if (totalBudget <= 0) ...[
+              if (hasBudget) ...[
+                const SizedBox(height: 20),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 10,
+                    backgroundColor: AppTheme.zinc800,
+                    color: progressColor,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${AppConstants.formatAmountPlain(monthlySpent)} dépensé',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isOverBudget
+                                  ? AppTheme.redAccent
+                                  : AppTheme.zinc400,
+                            ),
+                      ),
+                    ),
+                    Text(
+                      '${(progress * 100).toStringAsFixed(0)}%',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: progressColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                ),
+                if (isOverBudget)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded,
+                            color: AppTheme.redAccent, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Budget dépassé de ${AppConstants.formatAmountPlain(monthlySpent - totalBudget)}',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.redAccent,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (isNearLimit && !isOverBudget)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline,
+                            color: AppTheme.orangeAccent, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Presque à la limite — ${AppConstants.formatAmountPlain(totalBudget - monthlySpent)} restant',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.orangeAccent,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+              if (!hasBudget) ...[
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,

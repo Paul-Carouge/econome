@@ -23,6 +23,7 @@ class AppTheme {
 
   static const Color greenAccent = Color(0xFF22C55E);
   static const Color redAccent = Color(0xFFEF4444);
+  static const Color orangeAccent = Color(0xFFF97316);
 
   // ─── Theme Data ───────────────────────────────────────────────────
   static ThemeData get dark {

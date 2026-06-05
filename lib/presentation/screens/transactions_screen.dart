@@ -263,68 +263,153 @@ class _FilterBarState extends ConsumerState<_FilterBar> {
     final categoriesAsync = ref.watch(allCategoriesProvider);
     final categories = categoriesAsync.asData?.value ?? [];
 
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.zinc900,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.zinc800),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<int?>(
-          value: selectedCategoryId,
-          isExpanded: true,
-          dropdownColor: AppTheme.zinc900,
-          icon: const Icon(
-            Icons.expand_more,
-            size: 18,
-            color: AppTheme.zinc500,
+    final idx = categories.indexWhere((c) => c.id == selectedCategoryId);
+    final selectedCategory = idx >= 0 ? categories[idx] : null;
+
+    return GestureDetector(
+      onTap: () => _showCategoryPicker(categories, selectedCategoryId),
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.zinc900,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selectedCategoryId != null
+                ? AppTheme.amberAccent
+                : AppTheme.zinc800,
           ),
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppTheme.zinc300,
-          ),
-          hint: const Text(
-            'Catégorie',
-            style: TextStyle(
-              fontSize: 13,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                selectedCategory?.name ?? 'Catégorie',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: selectedCategoryId != null
+                      ? AppTheme.zinc200
+                      : AppTheme.zinc500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.expand_more,
+              size: 18,
               color: AppTheme.zinc500,
             ),
-          ),
-          items: [
-            const DropdownMenuItem<int?>(
-              value: null,
-              child: Text('Toutes les catégories'),
-            ),
-            ...categories.map((cat) => DropdownMenuItem<int?>(
-                  value: cat.id,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: Color(cat.color).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Icon(
-                          _mapCategoryIcon(cat.icon),
-                          size: 10,
-                          color: Color(cat.color),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(cat.name),
-                    ],
-                  ),
-                )),
           ],
-          onChanged: (value) {
-            ref.read(categoryFilterProvider.notifier).state = value;
-          },
         ),
       ),
+    );
+  }
+
+  void _showCategoryPicker(
+    List<dynamic> categories,
+    int? selectedCategoryId,
+  ) {
+    HapticFeedback.selectionClick();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.zinc900,
+      barrierColor: AppTheme.zinc950.withValues(alpha: 0.6),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.zinc600,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Title
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.filter_list,
+                      size: 18,
+                      color: AppTheme.amberAccent,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Filtrer par catégorie',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.zinc100,
+                      ),
+                    ),
+                    const Spacer(),
+                    // Clear filter button
+                    if (selectedCategoryId != null)
+                      TextButton(
+                        onPressed: () {
+                          ref.read(categoryFilterProvider.notifier).state = null;
+                          Navigator.of(ctx).pop();
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.amberAccent,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          'Effacer',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(color: AppTheme.zinc800, height: 1),
+              // Categories list
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(bottom: 16),
+                  children: [
+                    // "All categories" option
+                    _CategorySheetTile(
+                      icon: Icons.clear_all,
+                      color: AppTheme.zinc400,
+                      name: 'Toutes les catégories',
+                      isSelected: selectedCategoryId == null,
+                      onTap: () {
+                        ref.read(categoryFilterProvider.notifier).state = null;
+                        Navigator.of(ctx).pop();
+                      },
+                    ),
+                    ...categories.map((cat) => _CategorySheetTile(
+                          icon: _mapCategoryIcon(cat.icon),
+                          color: Color(cat.color),
+                          name: cat.name,
+                          isSelected: cat.id == selectedCategoryId,
+                          onTap: () {
+                            ref.read(categoryFilterProvider.notifier).state =
+                                cat.id;
+                            Navigator.of(ctx).pop();
+                          },
+                        )),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -400,6 +485,75 @@ class _TypeChip extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: selected ? chipColor : AppTheme.zinc400,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Category Sheet Tile ───────────────────────────────────────────────
+
+class _CategorySheetTile extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String name;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategorySheetTile({
+    required this.icon,
+    required this.color,
+    required this.name,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.amberAccent.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 16,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                name,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? AppTheme.zinc100 : AppTheme.zinc300,
+                ),
+              ),
+            ),
+            if (isSelected)
+              const Icon(
+                Icons.check,
+                size: 18,
+                color: AppTheme.amberAccent,
+              ),
+          ],
         ),
       ),
     );
@@ -505,8 +659,13 @@ class _TransactionGroupedList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transactions = ref.watch(filteredTransactionsProvider);
     final categoriesAsync = ref.watch(allCategoriesProvider);
+    final isStreamLoading = ref.watch(monthlyTransactionsProvider).isLoading;
 
-    if (transactions.isEmpty) {
+    // Détermine s'il s'agit d'un chargement post-initial (changement de mois)
+    // vs chargement initial (première ouverture). On vérifie si le cache existe.
+    final hasCache = ref.watch(monthlyTransactionsProvider).asData?.value != null;
+
+    if (transactions.isEmpty && !isStreamLoading) {
       // Check if filters are active
       final searchText = ref.watch(searchTextProvider);
       final categoryId = ref.watch(categoryFilterProvider);
@@ -582,6 +741,17 @@ class _TransactionGroupedList extends ConsumerWidget {
       }
     }
 
+    // Si les transactions sont vides et qu'on est en chargement initial (pas de cache),
+    // on montre un indicateur de chargement
+    if (transactions.isEmpty && isStreamLoading && !hasCache) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: AppTheme.amberAccent,
+          strokeWidth: 2,
+        ),
+      );
+    }
+
     final catMap = <int, Category>{};
     final catList = categoriesAsync.value ?? [];
     for (final c in catList) {
@@ -598,7 +768,47 @@ class _TransactionGroupedList extends ConsumerWidget {
     final dates = grouped.keys.toList()
       ..sort((a, b) => b.compareTo(a));
 
+    return Column(
+      children: [
+        // Subtle loading indicator during month change
+        if (isStreamLoading && hasCache)
+          SizedBox(
+            width: double.infinity,
+            height: 2,
+            child: LinearProgressIndicator(
+              backgroundColor: AppTheme.zinc800,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.amberAccent),
+            ),
+          ),
+
+        // Content with smooth cross-fade on data change
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: 200.ms,
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            child: _buildList(context, ref, grouped, dates, catMap),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, List<Transaction>> grouped,
+    List<String> dates,
+    Map<int, Category> catMap,
+  ) {
     return RefreshIndicator(
+      key: ValueKey(dates.isNotEmpty ? dates.first : 'empty'),
       color: AppTheme.amberAccent,
       backgroundColor: AppTheme.zinc900,
       onRefresh: () async {

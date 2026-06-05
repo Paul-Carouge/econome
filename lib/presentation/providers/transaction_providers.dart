@@ -20,6 +20,15 @@ final recentTransactionsProvider = StreamProvider<List<Transaction>>((ref) {
 // ─── Export Service Provider ──────────────────────────────────────────
 final exportServiceProvider = Provider<ExportService>((ref) => ExportService());
 
+// ─── Cache pour éviter le flash blanc ──────────────────────────────
+/// Dernières transactions mensuelles valides, conservées en cache pour
+/// éviter le flash blanc lors du changement de mois.
+///
+/// Quand le StreamProvider `monthlyTransactionsProvider` se recharge
+/// (changement de mois), `asData?.value` devient null pendant un instant.
+/// Ce cache permet de renvoyer les anciennes données pendant le chargement.
+List<Transaction>? _cachedMonthlyTransactions;
+
 // ─── Filter State Providers ──────────────────────────────────────────
 /// Texte de recherche pour filtrer les transactions.
 final searchTextProvider = StateProvider<String>((ref) => '');
@@ -33,8 +42,21 @@ final typeFilterProvider = StateProvider<String?>((ref) => null);
 /// Transactions filtrées selon les critères de recherche, catégorie et type.
 ///
 /// Le filtrage est effectué côté client sur les transactions déjà chargées.
+///
+/// Protégé contre le flash blanc : si le stream est en chargement (changement
+/// de mois), les anciennes données sont conservées jusqu'à l'arrivée des nouvelles.
 final filteredTransactionsProvider = Provider<List<Transaction>>((ref) {
-  final transactions = ref.watch(monthlyTransactionsProvider).asData?.value ?? [];
+  final asyncTransactions = ref.watch(monthlyTransactionsProvider);
+
+  final transactions = asyncTransactions.when(
+    data: (data) {
+      _cachedMonthlyTransactions = data;
+      return data;
+    },
+    loading: () => _cachedMonthlyTransactions ?? [],
+    error: (_, __) => _cachedMonthlyTransactions ?? [],
+  );
+
   final searchText = ref.watch(searchTextProvider).toLowerCase().trim();
   final categoryId = ref.watch(categoryFilterProvider);
   final type = ref.watch(typeFilterProvider);

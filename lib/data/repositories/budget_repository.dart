@@ -32,8 +32,8 @@ class BudgetRepository {
       }
       final id = await _dao.upsert(entry);
       return Success(id);
-    } on AppException {
-      rethrow;
+    } on AppException catch (e) {
+      return Failure(e);
     } catch (e, stack) {
       return Failure(
         DatabaseException(
