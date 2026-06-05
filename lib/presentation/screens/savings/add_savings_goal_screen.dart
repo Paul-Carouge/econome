@@ -117,7 +117,7 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
     try {
       if (_isEditing) {
         final goal = widget.existingGoal!;
-        await ref.read(savingsDaoProvider).updateEntry(goal.id, SavingsGoalsCompanion(
+        final result = await ref.read(savingsRepositoryProvider).updateEntry(goal.id, SavingsGoalsCompanion(
           name: Value(name),
           targetAmount: Value(targetAmount),
           deadline: Value(_selectedDeadline?.toIso8601String()),
@@ -126,12 +126,19 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
           notes: Value(_notesController.text.trim().isEmpty ? null : _notesController.text.trim()),
         ));
         if (mounted) {
-          showSuccess(context, 'Objectif modifié !');
-          context.pop();
+          result.when(
+            onSuccess: (_) {
+              showSuccess(context, 'Objectif modifié !');
+              context.pop();
+            },
+            onFailure: (error) {
+              showError(context, 'Erreur: ${error.message}');
+            },
+          );
         }
       } else {
         final now = DateTime.now();
-        await ref.read(savingsDaoProvider).insert(SavingsGoalsCompanion(
+        final result = await ref.read(savingsRepositoryProvider).insert(SavingsGoalsCompanion(
           name: Value(name),
           targetAmount: Value(targetAmount),
           currentAmount: const Value(0.0),
@@ -143,8 +150,15 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
           isCompleted: const Value(false),
         ));
         if (mounted) {
-          showSuccess(context, 'Objectif créé !');
-          context.pop();
+          result.when(
+            onSuccess: (_) {
+              showSuccess(context, 'Objectif créé !');
+              context.pop();
+            },
+            onFailure: (error) {
+              showError(context, 'Erreur: ${error.message}');
+            },
+          );
         }
       }
     } catch (e) {

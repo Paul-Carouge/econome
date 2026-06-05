@@ -6,6 +6,7 @@ import 'package:econome/core/theme/app_theme.dart';
 import 'package:econome/data/database/app_database.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
 import 'package:econome/core/utils/notifications.dart';
+import 'package:econome/core/services/notification_service.dart';
 
 // ─── Main Impulse Screen ───────────────────────────────────────────────
 
@@ -160,7 +161,7 @@ class _ImpulseCard extends ConsumerWidget {
       },
       onDismissed: (_) async {
         HapticFeedback.mediumImpact();
-        await ref.read(impulseDaoProvider).deleteEntry(item.id);
+        await ref.read(impulseRepositoryProvider).deleteEntry(item.id);
       },
       child: Opacity(
         opacity: opacity,
@@ -454,16 +455,34 @@ class _ImpulseCard extends ConsumerWidget {
     if (step3 != true || !context.mounted) return;
 
     // All 3 steps passed — proceed with approval
-    await ref.read(impulseDaoProvider).updateStatus(item.id, 'approved');
+    final result = await ref.read(impulseRepositoryProvider).updateStatus(item.id, 'approved');
     if (context.mounted) {
-      showSuccess(context, 'Achat approuvé !');
+      result.when(
+        onSuccess: (_) {
+          // Cancel the cooling-end notification since it's been resolved
+          cancelCoolingReminder(item.id);
+          showSuccess(context, 'Achat approuvé !');
+        },
+        onFailure: (error) {
+          showError(context, 'Erreur: ${error.message}');
+        },
+      );
     }
   }
 
   void _handleDismiss(BuildContext context, WidgetRef ref) async {
-    await ref.read(impulseDaoProvider).updateStatus(item.id, 'dismissed');
+    final result = await ref.read(impulseRepositoryProvider).updateStatus(item.id, 'dismissed');
     if (context.mounted) {
-      showInfo(context, 'Achat ignoré');
+      result.when(
+        onSuccess: (_) {
+          // Cancel the cooling-end notification since it's been resolved
+          cancelCoolingReminder(item.id);
+          showInfo(context, 'Achat ignoré');
+        },
+        onFailure: (error) {
+          showError(context, 'Erreur: ${error.message}');
+        },
+      );
     }
   }
 
@@ -495,9 +514,18 @@ class _ImpulseCard extends ConsumerWidget {
 
     if (confirmed == true) {
       HapticFeedback.mediumImpact();
-      await ref.read(impulseDaoProvider).deleteEntry(item.id);
+      // Cancel any pending cooling notification for this item
+      cancelCoolingReminder(item.id);
+      final result = await ref.read(impulseRepositoryProvider).deleteEntry(item.id);
       if (context.mounted) {
-        showSuccess(context, 'Achat supprimé');
+        result.when(
+          onSuccess: (_) {
+            showSuccess(context, 'Achat supprimé');
+          },
+          onFailure: (error) {
+            showError(context, 'Erreur: ${error.message}');
+          },
+        );
       }
     }
   }

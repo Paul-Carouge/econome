@@ -193,11 +193,7 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _resetData(WidgetRef ref) async {
     final db = ref.read(databaseProvider);
-    await db.transaction(() async {
-      await db.delete(db.savingsGoals).go();
-      await db.delete(db.budgets).go();
-      await db.delete(db.transactions).go();
-    });
+    await clearAllData(db);
   }
 }
 

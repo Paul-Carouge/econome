@@ -389,18 +389,25 @@ class _TransactionCard extends ConsumerWidget {
       },
       onDismissed: (_) async {
         HapticFeedback.mediumImpact();
-        final dao = ref.read(transactionDaoProvider);
-        await dao.deleteEntry(transaction.id);
+        final repo = ref.read(transactionRepositoryProvider);
+        final result = await repo.deleteEntry(transaction.id);
         ref.invalidate(monthlyTransactionsProvider);
         ref.invalidate(dashboardDataProvider);
         ref.invalidate(recentTransactionsProvider);
         if (context.mounted) {
-          showSuccess(
-            context,
-            'Transaction supprimée',
-            actionLabel: 'Annuler',
-            onAction: () {
-              // Re-add would require storing the full data
+          result.when(
+            onSuccess: (_) {
+              showSuccess(
+                context,
+                'Transaction supprimée',
+                actionLabel: 'Annuler',
+                onAction: () {
+                  // Re-add would require storing the full data
+                },
+              );
+            },
+            onFailure: (error) {
+              showError(context, 'Erreur: ${error.message}');
             },
           );
         }

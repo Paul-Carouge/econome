@@ -337,7 +337,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           '${_selectedDate.month.toString().padLeft(2, '0')}-'
           '${_selectedDate.day.toString().padLeft(2, '0')}';
 
-      await ref.read(transactionDaoProvider).insert(
+      final result = await ref.read(transactionRepositoryProvider).insert(
             TransactionsCompanion(
               amount: Value(double.parse(
                   _amountController.text.replaceAll(',', '.'))),
@@ -353,15 +353,22 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           );
 
       if (context.mounted) {
-        showSuccess(context, 'Transaction ajoutée');
+        result.when(
+          onSuccess: (_) {
+            showSuccess(context, 'Transaction ajoutée');
 
-        // Pop all the way back
-        final routeState = GoRouterState.of(context);
-        if (routeState.uri.toString().startsWith('/impulse')) {
-          context.go('/impulse');
-        } else {
-          context.pop();
-        }
+            // Pop all the way back
+            final routeState = GoRouterState.of(context);
+            if (routeState.uri.toString().startsWith('/impulse')) {
+              context.go('/impulse');
+            } else {
+              context.pop();
+            }
+          },
+          onFailure: (error) {
+            showError(context, 'Erreur : ${error.message}');
+          },
+        );
       }
     } catch (e) {
       if (context.mounted) {

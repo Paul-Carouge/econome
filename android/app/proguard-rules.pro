@@ -31,6 +31,10 @@
 -keep class com.dexterous.** { *; }
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
 
+# Sentry crash reporting
+-keep class io.sentry.** { *; }
+-keep class io.sentry.flutter.** { *; }
+
 # Keep enum classes used in API
 -keepclassmembers enum * { *; }
 

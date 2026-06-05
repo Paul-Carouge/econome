@@ -119,11 +119,20 @@ class SavingsScreen extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final amount = double.tryParse(amountController.text.replaceAll(',', '.'));
                     if (amount == null || amount <= 0) return;
-                    ref.read(savingsDaoProvider).addContribution(goal.id, amount);
-                    Navigator.of(ctx).pop(true); // pop with true = confetti!
+                    final result = await ref.read(savingsRepositoryProvider).addContribution(goal.id, amount);
+                    if (result.isSuccess) {
+                      Navigator.of(ctx).pop(true); // pop with true = confetti!
+                    } else {
+                      result.when(
+                        onSuccess: (_) {},
+                        onFailure: (error) {
+                          showError(ctx, 'Erreur: ${error.message}');
+                        },
+                      );
+                    }
                   },
                   child: const Text('Ajouter'),
                 ),
@@ -178,10 +187,17 @@ class SavingsScreen extends ConsumerWidget {
     );
 
     if (confirmed == true) {
-      await ref.read(savingsDaoProvider).deleteEntry(goal.id);
+      final result = await ref.read(savingsRepositoryProvider).deleteEntry(goal.id);
       if (context.mounted) {
-        HapticFeedback.heavyImpact();
-        showSuccess(context, 'Objectif supprimé');
+        result.when(
+          onSuccess: (_) {
+            HapticFeedback.heavyImpact();
+            showSuccess(context, 'Objectif supprimé');
+          },
+          onFailure: (error) {
+            showError(context, 'Erreur: ${error.message}');
+          },
+        );
       }
     }
   }

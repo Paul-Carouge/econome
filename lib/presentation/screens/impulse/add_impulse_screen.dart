@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:econome/core/theme/app_theme.dart';
 import 'package:econome/data/database/app_database.dart';
-import 'package:econome/presentation/providers/app_providers.dart';
 import 'package:econome/core/utils/notifications.dart';
+import 'package:econome/core/services/notification_service.dart';
+import 'package:econome/presentation/providers/app_providers.dart';
 
 // ─── Cooldown Duration Helper ───────────────────────────────────────────
 
@@ -318,7 +319,7 @@ class _AddImpulseScreenState extends ConsumerState<AddImpulseScreen> {
           _amountController.text.replaceAll(',', '.'));
       final coolingUntil = now.add(calculateCooldownDuration(amount));
 
-      await ref.read(impulseDaoProvider).insert(
+      final result = await ref.read(impulseRepositoryProvider).insert(
             ImpulseItemsCompanion(
               name: Value(_nameController.text.trim()),
               amount: Value(double.parse(
@@ -339,8 +340,34 @@ class _AddImpulseScreenState extends ConsumerState<AddImpulseScreen> {
           );
 
       if (context.mounted) {
-        showSuccess(context, 'Achat ajouté à la liste d\'attente');
-        context.pop();
+        result.when(
+          onSuccess: (_) {
+            // Schedule a local notification when the cooling period ends
+            scheduleCoolingReminder(ImpulseItem(
+              id: 0, // placeholder — real ID assigned by DB
+              name: _nameController.text.trim(),
+              amount: double.parse(
+                  _amountController.text.replaceAll(',', '.')),
+              categoryId: _selectedCategoryId,
+              link: _linkController.text.trim().isNotEmpty
+                  ? _linkController.text.trim()
+                  : null,
+              notes: _notesController.text.trim().isNotEmpty
+                  ? _notesController.text.trim()
+                  : null,
+              createdAt: now.toIso8601String(),
+              coolingUntil: coolingUntil.toIso8601String(),
+              status: 'cooling',
+              approvedAt: null,
+              dismissedAt: null,
+            ));
+            showSuccess(context, 'Achat ajouté à la liste d\'attente');
+            context.pop();
+          },
+          onFailure: (error) {
+            showError(context, 'Erreur : ${error.message}');
+          },
+        );
       }
     } catch (e) {
       if (context.mounted) {

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:econome/core/theme/app_theme.dart';
 import 'package:econome/core/utils/icon_resolver.dart';
 import 'package:econome/core/constants/app_constants.dart';
+import 'package:econome/core/utils/notifications.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
 import 'package:econome/data/database/app_database.dart';
 
@@ -143,15 +144,20 @@ class BudgetsScreen extends ConsumerWidget {
               if (amount == null || amount <= 0) return;
 
               final now = DateTime.now();
-              final dao = ref.read(budgetDaoProvider);
-              await dao.upsert(BudgetsCompanion(
+              final repo = ref.read(budgetRepositoryProvider);
+              final result = await repo.upsert(BudgetsCompanion(
                 totalBudget: Value(amount),
                 month: Value(now.month),
                 year: Value(now.year),
                 createdAt: Value(now.toIso8601String()),
               ));
               ref.invalidate(currentBudgetProvider);
-              if (ctx.mounted) Navigator.pop(ctx);
+              if (ctx.mounted) {
+                result.when(
+                  onSuccess: (_) => Navigator.pop(ctx),
+                  onFailure: (error) => showError(context, 'Erreur: ${error.message}'),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.amberAccent,
@@ -201,13 +207,18 @@ class BudgetsScreen extends ConsumerWidget {
           if (category.budget != null && category.budget! > 0)
             TextButton(
               onPressed: () async {
-                final dao = ref.read(categoryDaoProvider);
-                await dao.updateEntry(
+                final repo = ref.read(categoryRepositoryProvider);
+                final result = await repo.updateEntry(
                   category.id,
-                  CategoriesCompanion(budget: Value(null)),
+                  CategoriesCompanion(budget: const Value(null)),
                 );
                 ref.invalidate(expenseCategoriesProvider);
-                if (ctx.mounted) Navigator.pop(ctx);
+                if (ctx.mounted) {
+                  result.when(
+                    onSuccess: (_) => Navigator.pop(ctx),
+                    onFailure: (error) => showError(context, 'Erreur: ${error.message}'),
+                  );
+                }
               },
               child: const Text('Supprimer',
                   style: TextStyle(color: AppTheme.redAccent)),
@@ -219,13 +230,18 @@ class BudgetsScreen extends ConsumerWidget {
               final amount = double.tryParse(text);
               if (amount == null || amount <= 0) return;
 
-              final dao = ref.read(categoryDaoProvider);
-              await dao.updateEntry(
+              final repo = ref.read(categoryRepositoryProvider);
+              final result = await repo.updateEntry(
                 category.id,
                 CategoriesCompanion(budget: Value(amount)),
               );
               ref.invalidate(expenseCategoriesProvider);
-              if (ctx.mounted) Navigator.pop(ctx);
+              if (ctx.mounted) {
+                result.when(
+                  onSuccess: (_) => Navigator.pop(ctx),
+                  onFailure: (error) => showError(context, 'Erreur: ${error.message}'),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.amberAccent,
