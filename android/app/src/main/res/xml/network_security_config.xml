@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Économe — Network Security Configuration
+  App 100% offline : tout trafic réseau non chiffré est bloqué.
+  Seuls les certificats système Android sont approuvés.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

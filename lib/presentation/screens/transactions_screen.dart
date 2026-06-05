@@ -70,7 +70,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final current = ref.read(currentMonthProvider);
     ref
         .read(currentMonthProvider.notifier)
-        .state = DateTime(current.year, current.month + delta, 1);
+        .setMonth(DateTime(current.year, current.month + delta, 1));
   }
 }
 

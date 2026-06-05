@@ -5,6 +5,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart';
 import 'app_database.dart';
 
+// TODO(phantom): Migrer vers sqlcipher pour chiffrer les données financières
+// Nécessite : sqlcipher_flutter_libs, drift avec NativeDatabase chiffré
 AppDatabase buildDatabase() {
   return AppDatabase(LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();

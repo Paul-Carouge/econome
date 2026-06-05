@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:econome/core/theme/app_theme.dart';
+import 'package:econome/core/utils/icon_resolver.dart';
 import 'package:econome/core/constants/app_constants.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
 import 'package:econome/data/database/app_database.dart';
@@ -396,8 +397,7 @@ class _CategoryBudgetCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    AppConstants.categoryIcons[category.icon] ??
-                        Icons.category,
+                    resolveCategoryIcon(category.icon),
                     color: Color(category.color),
                     size: 20,
                   ),

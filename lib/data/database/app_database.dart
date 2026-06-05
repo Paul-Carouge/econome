@@ -81,5 +81,40 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      beforeOpen: (details) async {
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_impulse_status ON impulse_items(status)',
+        );
+      },
+      onUpgrade: (m, from, to) async {
+        if (from == 1) {
+          // Migration v1 → v2: create indexes for performance
+          // Using raw SQL statements via Index entity
+          await m.createIndex(
+            Index('idx_transactions_date',
+                'CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date)'),
+          );
+          await m.createIndex(
+            Index('idx_transactions_category',
+                'CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id)'),
+          );
+          await m.createIndex(
+            Index('idx_impulse_status',
+                'CREATE INDEX IF NOT EXISTS idx_impulse_status ON impulse_items(status)'),
+          );
+        }
+      },
+    );
+  }
 }

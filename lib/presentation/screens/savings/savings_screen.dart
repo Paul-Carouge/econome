@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:econome/core/theme/app_theme.dart';
+import 'package:econome/core/utils/icon_resolver.dart';
 import 'package:econome/core/constants/app_constants.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
 import 'package:econome/data/database/app_database.dart';
@@ -229,7 +230,7 @@ class _SavingsGoalCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      AppConstants.categoryIcons[goal.icon] ?? Icons.savings,
+                      resolveCategoryIcon(goal.icon),
                       color: Color(goal.color),
                       size: 22,
                     ),

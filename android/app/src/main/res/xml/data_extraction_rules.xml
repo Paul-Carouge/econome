@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Économe — Data Extraction Rules
+  Application 100% offline : aucune extraction de données autorisée.
+  Les données financières ne doivent pas pouvoir être sauvegardées
+  via ADB ou services Google.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+    </device-transfer>
+</data-extraction-rules>

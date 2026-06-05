@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart';
 import 'package:econome/core/theme/app_theme.dart';
+import 'package:econome/core/utils/icon_resolver.dart';
 import 'package:econome/core/constants/app_constants.dart';
 import 'package:econome/core/utils/notifications.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
@@ -239,7 +240,7 @@ class _AddSavingsGoalScreenState extends ConsumerState<AddSavingsGoalScreen> {
                           : null,
                     ),
                     child: Icon(
-                      AppConstants.categoryIcons[iconName] ?? Icons.savings,
+                      resolveCategoryIcon(iconName),
                       color: isSelected ? AppTheme.amberAccent : AppTheme.zinc400,
                       size: 22,
                     ),

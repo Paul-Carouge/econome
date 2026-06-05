@@ -51,16 +51,20 @@ class CategoryDao extends DatabaseAccessor<AppDatabase> with _$CategoryDaoMixin 
   Future<int> deleteEntry(int id) =>
       (delete(categories)..where((c) => c.id.equals(id))).go();
 
+  /// Returns total spent on a specific category using SQL SUM.
   Future<double> getTotalSpentByCategory(int categoryId, int month, int year) async {
     final start = DateTime(year, month, 1).toIso8601String().substring(0, 10);
     final end = DateTime(year, month + 1, 1).toIso8601String().substring(0, 10);
-
-    final rows = await (select(transactions)
-          ..where((t) =>
-              t.categoryId.equals(categoryId) &
-              t.type.equals('expense') &
-              t.date.isBetweenValues(start, end)))
-        .get();
-    return rows.map((t) => t.amount).reduce((a, b) => a + b);
+    final rows = await customSelect(
+      'SELECT COALESCE(SUM(amount), 0) AS total FROM transactions '
+      'WHERE category_id = ? AND type = ? AND date >= ? AND date < ?',
+      variables: [
+        Variable.withInt(categoryId),
+        Variable.withString('expense'),
+        Variable.withString(start),
+        Variable.withString(end),
+      ],
+    ).get();
+    return rows.first.read<double>('total');
   }
 }

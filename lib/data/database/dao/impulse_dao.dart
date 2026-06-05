@@ -40,10 +40,12 @@ class ImpulseDao extends DatabaseAccessor<AppDatabase> with _$ImpulseDaoMixin {
   Future<int> deleteEntry(int id) =>
       (delete(impulseItems)..where((i) => i.id.equals(id))).go();
 
+  /// Returns the count of active (cooling) impulse items using SQL COUNT.
   Future<int> getActiveCount() async {
-    final rows = await (select(impulseItems)
-          ..where((i) => i.status.equals('cooling')))
-        .get();
-    return rows.length;
+    final rows = await customSelect(
+      'SELECT COUNT(*) AS cnt FROM impulse_items WHERE status = ?',
+      variables: [Variable.withString('cooling')],
+    ).get();
+    return rows.first.read<int>('cnt');
   }
 }
