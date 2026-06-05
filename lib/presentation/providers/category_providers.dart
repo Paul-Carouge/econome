@@ -1,16 +1,12 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:econome/data/database/app_database.dart';
 import 'package:econome/presentation/providers/database_providers.dart';
 
-part 'category_providers.g.dart';
-
 // ─── Category Providers ───────────────────────────────────────────────
-@riverpod
-Stream<List<Category>> expenseCategories(ExpenseCategoriesRef ref) {
+final expenseCategoriesProvider = StreamProvider<List<Category>>((ref) {
   return ref.watch(categoryDaoProvider).watchExpenseCategories();
-}
+});
 
-@riverpod
-Stream<List<Category>> allCategories(AllCategoriesRef ref) {
+final allCategoriesProvider = StreamProvider<List<Category>>((ref) {
   return ref.watch(categoryDaoProvider).watchAll();
-}
+});

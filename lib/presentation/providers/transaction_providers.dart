@@ -1,28 +1,60 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:econome/core/services/export_service.dart';
 import 'package:econome/data/database/app_database.dart';
 import 'package:econome/presentation/providers/database_providers.dart';
 
-part 'transaction_providers.g.dart';
-
 // ─── Current Month State ──────────────────────────────────────────────
-// Utilise un Notifier pour remplacer StateProvider avec @riverpod
-@riverpod
-class CurrentMonth extends _$CurrentMonth {
-  @override
-  DateTime build() => DateTime.now();
-
-  void setMonth(DateTime month) => state = month;
-}
+final currentMonthProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
 // ─── Transaction Providers ────────────────────────────────────────────
-@riverpod
-Stream<List<Transaction>> monthlyTransactions(MonthlyTransactionsRef ref) {
+final monthlyTransactionsProvider = StreamProvider<List<Transaction>>((ref) {
   final month = ref.watch(currentMonthProvider);
   return ref.watch(transactionDaoProvider).watchByMonth(month.month, month.year);
-}
+});
 
-@riverpod
-Stream<List<Transaction>> recentTransactions(RecentTransactionsRef ref) {
+final recentTransactionsProvider = StreamProvider<List<Transaction>>((ref) {
   return ref.watch(transactionDaoProvider).watchRecent(5);
-}
+});
+
+// ─── Export Service Provider ──────────────────────────────────────────
+final exportServiceProvider = Provider<ExportService>((ref) => ExportService());
+
+// ─── Filter State Providers ──────────────────────────────────────────
+/// Texte de recherche pour filtrer les transactions.
+final searchTextProvider = StateProvider<String>((ref) => '');
+
+/// ID de la catégorie sélectionnée pour le filtre (null = toutes).
+final categoryFilterProvider = StateProvider<int?>((ref) => null);
+
+/// Type sélectionné pour le filtre (null = tous, 'income' = revenus, 'expense' = dépenses).
+final typeFilterProvider = StateProvider<String?>((ref) => null);
+
+/// Transactions filtrées selon les critères de recherche, catégorie et type.
+///
+/// Le filtrage est effectué côté client sur les transactions déjà chargées.
+final filteredTransactionsProvider = Provider<List<Transaction>>((ref) {
+  final transactions = ref.watch(monthlyTransactionsProvider).asData?.value ?? [];
+  final searchText = ref.watch(searchTextProvider).toLowerCase().trim();
+  final categoryId = ref.watch(categoryFilterProvider);
+  final type = ref.watch(typeFilterProvider);
+
+  return transactions.where((t) {
+    // Filtre par type
+    if (type != null && t.type != type) return false;
+
+    // Filtre par catégorie
+    if (categoryId != null && t.categoryId != categoryId) return false;
+
+    // Filtre par recherche textuelle
+    if (searchText.isNotEmpty) {
+      final desc = (t.description ?? '').toLowerCase();
+      final note = (t.note ?? '').toLowerCase();
+      if (!desc.contains(searchText) && !note.contains(searchText)) {
+        return false;
+      }
+    }
+
+    return true;
+  }).toList();
+});

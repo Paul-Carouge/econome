@@ -16,57 +16,57 @@ part 'database_providers.g.dart';
 
 // ─── Database Provider ───────────────────────────────────────────────
 @Riverpod(keepAlive: true)
-AppDatabase database(DatabaseRef ref) => buildDatabase();
+AppDatabase database(Ref ref) => buildDatabase();
 
 // ─── DAO Providers ────────────────────────────────────────────────────
 @Riverpod(keepAlive: true)
-CategoryDao categoryDao(CategoryDaoRef ref) {
+CategoryDao categoryDao(Ref ref) {
   return CategoryDao(ref.watch(databaseProvider));
 }
 
 @Riverpod(keepAlive: true)
-TransactionDao transactionDao(TransactionDaoRef ref) {
+TransactionDao transactionDao(Ref ref) {
   return TransactionDao(ref.watch(databaseProvider));
 }
 
 @Riverpod(keepAlive: true)
-BudgetDao budgetDao(BudgetDaoRef ref) {
+BudgetDao budgetDao(Ref ref) {
   return BudgetDao(ref.watch(databaseProvider));
 }
 
 @Riverpod(keepAlive: true)
-SavingsDao savingsDao(SavingsDaoRef ref) {
+SavingsDao savingsDao(Ref ref) {
   return SavingsDao(ref.watch(databaseProvider));
 }
 
 @Riverpod(keepAlive: true)
-ImpulseDao impulseDao(ImpulseDaoRef ref) {
+ImpulseDao impulseDao(Ref ref) {
   return ImpulseDao(ref.watch(databaseProvider));
 }
 
 // ─── Repository Providers ─────────────────────────────────────────────
 @Riverpod(keepAlive: true)
-CategoryRepository categoryRepository(CategoryRepositoryRef ref) {
+CategoryRepository categoryRepository(Ref ref) {
   return CategoryRepository(ref.watch(categoryDaoProvider));
 }
 
 @Riverpod(keepAlive: true)
-TransactionRepository transactionRepository(TransactionRepositoryRef ref) {
+TransactionRepository transactionRepository(Ref ref) {
   return TransactionRepository(ref.watch(transactionDaoProvider));
 }
 
 @Riverpod(keepAlive: true)
-BudgetRepository budgetRepository(BudgetRepositoryRef ref) {
+BudgetRepository budgetRepository(Ref ref) {
   return BudgetRepository(ref.watch(budgetDaoProvider));
 }
 
 @Riverpod(keepAlive: true)
-SavingsRepository savingsRepository(SavingsRepositoryRef ref) {
+SavingsRepository savingsRepository(Ref ref) {
   return SavingsRepository(ref.watch(savingsDaoProvider));
 }
 
 @Riverpod(keepAlive: true)
-ImpulseRepository impulseRepository(ImpulseRepositoryRef ref) {
+ImpulseRepository impulseRepository(Ref ref) {
   return ImpulseRepository(ref.watch(impulseDaoProvider));
 }
 

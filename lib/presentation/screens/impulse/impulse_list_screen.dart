@@ -7,6 +7,7 @@ import 'package:econome/data/database/app_database.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
 import 'package:econome/core/utils/notifications.dart';
 import 'package:econome/core/services/notification_service.dart';
+import 'dart:async';
 
 // ─── Main Impulse Screen ───────────────────────────────────────────────
 
@@ -563,6 +564,7 @@ class _CoolingTimer extends StatefulWidget {
 
 class _CoolingTimerState extends State<_CoolingTimer> {
   late DateTime _target;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -572,12 +574,17 @@ class _CoolingTimerState extends State<_CoolingTimer> {
   }
 
   void _startTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
         setState(() {});
-        _startTimer();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override

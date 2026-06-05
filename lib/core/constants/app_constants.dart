@@ -42,6 +42,21 @@ class AppConstants {
 
   // ─── Icons map ────────────────────────────────────────────────────
   static const Map<String, IconData> categoryIcons = {
+    // Seed data keys
+    'restaurant': Icons.restaurant,
+    'directions_car': Icons.directions_car,
+    'shopping_bag': Icons.shopping_bag,
+    'movie': Icons.movie,
+    'favorite': Icons.favorite,
+    'school': Icons.school,
+    'home': Icons.home,
+    'bolt': Icons.bolt,
+    'work': Icons.work,
+    'computer': Icons.computer,
+    'card_giftcard': Icons.card_giftcard,
+    'more_horiz': Icons.more_horiz,
+    'savings': Icons.savings,
+    // Legacy/alternate keys
     'food': Icons.restaurant,
     'transport': Icons.directions_car,
     'shopping': Icons.shopping_bag,
@@ -53,11 +68,6 @@ class AppConstants {
     'salary': Icons.work,
     'freelance': Icons.computer,
     'gift': Icons.card_giftcard,
-    'savings': Icons.savings,
-    'home': Icons.home,
-    'school': Icons.school,
-    'favorite': Icons.favorite,
-    'card_giftcard': Icons.card_giftcard,
     'investment': Icons.trending_up,
     'insurance': Icons.verified_user,
     'other': Icons.more_horiz,
@@ -67,6 +77,5 @@ class AppConstants {
     'star': Icons.star,
     'account_balance': Icons.account_balance,
     'shopping_cart': Icons.shopping_cart,
-    'directions_car': Icons.directions_car,
   };
 }

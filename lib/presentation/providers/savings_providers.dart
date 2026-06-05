@@ -1,11 +1,8 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:econome/data/database/app_database.dart';
 import 'package:econome/presentation/providers/database_providers.dart';
 
-part 'savings_providers.g.dart';
-
 // ─── Savings Providers ────────────────────────────────────────────────
-@riverpod
-Stream<List<SavingsGoal>> savingsList(SavingsListRef ref) {
+final savingsListProvider = StreamProvider<List<SavingsGoal>>((ref) {
   return ref.watch(savingsDaoProvider).watchAll();
-}
+});

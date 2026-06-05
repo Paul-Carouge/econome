@@ -8,7 +8,7 @@ import 'package:econome/presentation/providers/provider_app.dart';
 extension PumpApp on WidgetTester {
   Future<void> pumpApp(
     Widget child, {
-    List<Override> overrides = const [],
+    List<dynamic> overrides = const [],
   }) async {
     await pumpWidget(
       ProviderScope(

@@ -6,6 +6,7 @@ import 'package:econome/core/theme/app_theme.dart';
 import 'package:econome/data/database/app_database.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
 import 'package:econome/core/utils/notifications.dart';
+import 'package:econome/core/utils/icon_resolver.dart';
 
 // ─── Add Transaction Screen ────────────────────────────────────────────
 
@@ -377,40 +378,5 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
-  }
-}
-
-// ─── Icon Name Resolution ──────────────────────────────────────────────
-
-IconData resolveCategoryIcon(String iconName) {
-  switch (iconName) {
-    case 'restaurant':
-      return Icons.restaurant;
-    case 'directions_car':
-      return Icons.directions_car;
-    case 'shopping_bag':
-      return Icons.shopping_bag;
-    case 'movie':
-      return Icons.movie;
-    case 'favorite':
-      return Icons.favorite;
-    case 'school':
-      return Icons.school;
-    case 'home':
-      return Icons.home;
-    case 'bolt':
-      return Icons.bolt;
-    case 'work':
-      return Icons.work;
-    case 'computer':
-      return Icons.computer;
-    case 'card_giftcard':
-      return Icons.card_giftcard;
-    case 'more_horiz':
-      return Icons.more_horiz;
-    case 'savings':
-      return Icons.savings;
-    default:
-      return Icons.category;
   }
 }

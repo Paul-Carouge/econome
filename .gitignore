@@ -22,6 +22,9 @@ Thumbs.db
 *.ap_
 *.dex
 
+# Keystore & signing config
+android/key.properties
+
 # iOS
 *.ipa
 *.dSYM.zip

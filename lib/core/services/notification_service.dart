@@ -35,7 +35,7 @@ Future<void> initNotificationService() async {
     iOS: iosSettings,
   );
 
-  await _plugin.initialize(initSettings);
+  await _plugin.initialize(settings: initSettings);
 }
 
 // ─── Cooling Reminder ─────────────────────────────────────────────────
@@ -79,20 +79,19 @@ Future<void> scheduleCoolingReminder(ImpulseItem item) async {
   final scheduledDate = tz.TZDateTime.from(coolingEnd, tz.local);
 
   await _plugin.zonedSchedule(
-    _coolingBaseId + item.id,
-    '⏰ Période de refroidissement terminée',
-    'Vous pouvez maintenant approuver ou ignorer « ${item.name} » ($amountStr).',
-    scheduledDate,
-    details,
+    id: _coolingBaseId + item.id,
+    scheduledDate: scheduledDate,
+    notificationDetails: details,
     androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-    uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
+    title: '⏰ Période de refroidissement terminée',
+    body:
+        'Vous pouvez maintenant approuver ou ignorer « ${item.name} » ($amountStr).',
   );
 }
 
 /// Cancels a previously scheduled cooling reminder for [impulseId].
 Future<void> cancelCoolingReminder(int impulseId) async {
-  await _plugin.cancel(_coolingBaseId + impulseId);
+  await _plugin.cancel(id: _coolingBaseId + impulseId);
 }
 
 /// Cancels **all** scheduled cooling reminders.

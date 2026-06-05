@@ -20,13 +20,13 @@ part 'provider_app.g.dart';
 // ─── Onboarding State ──────────────────────────────────────────────
 /// Provider surchargé dans main() avec la valeur réelle depuis SharedPreferences.
 @Riverpod(keepAlive: true)
-bool onboardingComplete(OnboardingCompleteRef ref) {
+bool onboardingComplete(Ref ref) {
   throw UnimplementedError('Override in main()');
 }
 
 // ─── Router ────────────────────────────────────────────────────────
 @Riverpod(keepAlive: true)
-GoRouter router(RouterRef ref) {
+GoRouter router(Ref ref) {
   final onboardingComplete = ref.watch(onboardingCompleteProvider);
   return _buildRouter(onboardingComplete);
 }

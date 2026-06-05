@@ -1,7 +1,5 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:econome/presentation/providers/transaction_providers.dart';
-
-part 'dashboard_providers.g.dart';
 
 // ─── Dashboard Data ───────────────────────────────────────────────────
 
@@ -9,8 +7,7 @@ part 'dashboard_providers.g.dart';
 ///
 /// NE doit PAS avaler les erreurs : les états loading et error sont
 /// propagés pour que l'UI puisse réagir correctement.
-@riverpod
-DashboardData dashboardData(DashboardDataRef ref) {
+final dashboardInfoProvider = Provider<DashboardInfo>((ref) {
   final transactions = ref.watch(monthlyTransactionsProvider);
 
   return transactions.when(
@@ -24,7 +21,7 @@ DashboardData dashboardData(DashboardDataRef ref) {
         }
       }
       final now = DateTime.now();
-      return DashboardData(
+      return DashboardInfo(
         totalIncome: income,
         totalExpenses: expenses,
         balance: income - expenses,
@@ -35,17 +32,17 @@ DashboardData dashboardData(DashboardDataRef ref) {
     loading: () => throw const AsyncLoading(),
     error: (e, st) => throw e,
   );
-}
+});
 
 /// Valeur du tableau de bord.
-class DashboardData {
+class DashboardInfo {
   final double totalIncome;
   final double totalExpenses;
   final double balance;
   final int month;
   final int year;
 
-  const DashboardData({
+  const DashboardInfo({
     required this.totalIncome,
     required this.totalExpenses,
     required this.balance,

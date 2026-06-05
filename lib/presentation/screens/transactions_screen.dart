@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/icon_resolver.dart';
 import '../../core/utils/notifications.dart';
 import '../providers/app_providers.dart';
 import '../../data/database/app_database.dart';
@@ -22,6 +23,14 @@ class TransactionsScreen extends ConsumerStatefulWidget {
 }
 
 class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final month = ref.watch(currentMonthProvider);
@@ -31,6 +40,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       appBar: AppBar(
         title: Text(DateFormat('MMMM yyyy', 'fr_FR').format(month)),
         actions: [
+          // Export button
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: 'Exporter en CSV',
+            onPressed: _exportCsv,
+          ),
           // Month navigation
           IconButton(
             icon: const Icon(Icons.chevron_left),
@@ -46,6 +61,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         children: [
           // Month total bar
           _MonthTotals(),
+
+          // Search & filters
+          _FilterBar(),
 
           // Transaction list
           Expanded(
@@ -68,9 +86,323 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   void _changeMonth(int delta) {
     HapticFeedback.selectionClick();
     final current = ref.read(currentMonthProvider);
-    ref
-        .read(currentMonthProvider.notifier)
-        .setMonth(DateTime(current.year, current.month + delta, 1));
+    ref.read(currentMonthProvider.notifier).state =
+        DateTime(current.year, current.month + delta, 1);
+  }
+
+  Future<void> _exportCsv() async {
+    HapticFeedback.lightImpact();
+    try {
+      final transactions =
+          ref.read(monthlyTransactionsProvider).asData?.value ?? [];
+      final categories =
+          ref.read(allCategoriesProvider).asData?.value ?? [];
+
+      if (transactions.isEmpty) {
+        if (context.mounted) {
+          showError(context, 'Aucune transaction à exporter');
+        }
+        return;
+      }
+
+      await ref.read(exportServiceProvider).exportToCsv(
+            transactions,
+            categories,
+          );
+    } catch (e) {
+      if (context.mounted) {
+        showError(context, 'Erreur lors de l\'export : $e');
+      }
+    }
+  }
+}
+
+// ─── Filter Bar ────────────────────────────────────────────────────────
+
+class _FilterBar extends ConsumerStatefulWidget {
+  const _FilterBar();
+
+  @override
+  ConsumerState<_FilterBar> createState() => _FilterBarState();
+}
+
+class _FilterBarState extends ConsumerState<_FilterBar> {
+  final _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Sync with provider on init
+    _searchController.text = ref.read(searchTextProvider);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedCategoryId = ref.watch(categoryFilterProvider);
+    final selectedType = ref.watch(typeFilterProvider);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppTheme.zinc800, width: 1),
+        ),
+      ),
+      child: Column(
+        children: [
+          // ── Search bar ──
+          SizedBox(
+            height: 44,
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppTheme.zinc200,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Rechercher une transaction…',
+                hintStyle: const TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.zinc500,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  size: 20,
+                  color: AppTheme.zinc500,
+                ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.clear,
+                          size: 18,
+                          color: AppTheme.zinc500,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          ref.read(searchTextProvider.notifier).state = '';
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: AppTheme.zinc900,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppTheme.zinc800),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppTheme.zinc800),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                    color: AppTheme.amberAccent,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              onChanged: (value) {
+                ref.read(searchTextProvider.notifier).state = value;
+                setState(() {}); // rebuild to show/hide clear button
+              },
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // ── Filters row ──
+          Row(
+            children: [
+              // Category filter dropdown
+              Expanded(
+                child: _buildCategoryDropdown(selectedCategoryId),
+              ),
+              const SizedBox(width: 8),
+
+              // Type filter chips
+              _TypeChip(
+                label: 'Tous',
+                selected: selectedType == null,
+                onTap: () =>
+                    ref.read(typeFilterProvider.notifier).state = null,
+              ),
+              const SizedBox(width: 6),
+              _TypeChip(
+                label: 'Revenus',
+                selected: selectedType == 'income',
+                color: AppTheme.greenAccent,
+                onTap: () =>
+                    ref.read(typeFilterProvider.notifier).state = 'income',
+              ),
+              const SizedBox(width: 6),
+              _TypeChip(
+                label: 'Dépenses',
+                selected: selectedType == 'expense',
+                color: AppTheme.redAccent,
+                onTap: () =>
+                    ref.read(typeFilterProvider.notifier).state = 'expense',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryDropdown(int? selectedCategoryId) {
+    final categoriesAsync = ref.watch(allCategoriesProvider);
+    final categories = categoriesAsync.asData?.value ?? [];
+
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc900,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int?>(
+          value: selectedCategoryId,
+          isExpanded: true,
+          dropdownColor: AppTheme.zinc900,
+          icon: const Icon(
+            Icons.expand_more,
+            size: 18,
+            color: AppTheme.zinc500,
+          ),
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppTheme.zinc300,
+          ),
+          hint: const Text(
+            'Catégorie',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppTheme.zinc500,
+            ),
+          ),
+          items: [
+            const DropdownMenuItem<int?>(
+              value: null,
+              child: Text('Toutes les catégories'),
+            ),
+            ...categories.map((cat) => DropdownMenuItem<int?>(
+                  value: cat.id,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: Color(cat.color).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Icon(
+                          _mapCategoryIcon(cat.icon),
+                          size: 10,
+                          color: Color(cat.color),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(cat.name),
+                    ],
+                  ),
+                )),
+          ],
+          onChanged: (value) {
+            ref.read(categoryFilterProvider.notifier).state = value;
+          },
+        ),
+      ),
+    );
+  }
+
+  IconData _mapCategoryIcon(String iconName) {
+    switch (iconName) {
+      case 'restaurant':
+        return Icons.restaurant;
+      case 'directions_car':
+        return Icons.directions_car;
+      case 'shopping_bag':
+        return Icons.shopping_bag;
+      case 'movie':
+        return Icons.movie;
+      case 'favorite':
+        return Icons.favorite;
+      case 'school':
+        return Icons.school;
+      case 'home':
+        return Icons.home;
+      case 'bolt':
+        return Icons.bolt;
+      case 'work':
+        return Icons.work;
+      case 'computer':
+        return Icons.computer;
+      case 'card_giftcard':
+        return Icons.card_giftcard;
+      case 'more_horiz':
+        return Icons.more_horiz;
+      default:
+        return Icons.circle;
+    }
+  }
+}
+
+// ─── Type Chip ─────────────────────────────────────────────────────────
+
+class _TypeChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final Color? color;
+  final VoidCallback onTap;
+
+  const _TypeChip({
+    required this.label,
+    required this.selected,
+    this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final chipColor = color ?? AppTheme.amberAccent;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? chipColor.withValues(alpha: 0.15)
+              : AppTheme.zinc900,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selected ? chipColor : AppTheme.zinc800,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? chipColor : AppTheme.zinc400,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -79,7 +411,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 class _MonthTotals extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(dashboardDataProvider);
+    final data = ref.watch(dashboardInfoProvider);
 
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -171,93 +503,125 @@ class _TotalChip extends StatelessWidget {
 class _TransactionGroupedList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(monthlyTransactionsProvider);
+    final transactions = ref.watch(filteredTransactionsProvider);
     final categoriesAsync = ref.watch(allCategoriesProvider);
 
-    return transactionsAsync.when(
-      loading: () => const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-      error: (err, _) => Center(
-        child: Text(
-          'Erreur: $err',
-          style: const TextStyle(color: AppTheme.zinc500),
-        ),
-      ),
-      data: (transactions) {
-        if (transactions.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.receipt_long_outlined,
+    if (transactions.isEmpty) {
+      // Check if filters are active
+      final searchText = ref.watch(searchTextProvider);
+      final categoryId = ref.watch(categoryFilterProvider);
+      final type = ref.watch(typeFilterProvider);
+      final hasFilters = searchText.isNotEmpty ||
+          categoryId != null ||
+          type != null;
+
+      // Check if there are any transactions at all
+      final allTransactions =
+          ref.watch(monthlyTransactionsProvider).asData?.value ?? [];
+
+      if (allTransactions.isEmpty) {
+        return const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.receipt_long_outlined,
+                color: AppTheme.zinc600,
+                size: 48,
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Aucune transaction ce mois',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppTheme.zinc500,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Appuyez sur + pour en ajouter une',
+                style: TextStyle(
+                  fontSize: 13,
                   color: AppTheme.zinc600,
-                  size: 48,
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'Aucune transaction ce mois',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppTheme.zinc500,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Appuyez sur + pour en ajouter une',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppTheme.zinc600,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        final catMap = <int, Category>{};
-        final catList = categoriesAsync.valueOrNull ?? [];
-        for (final c in catList) {
-          catMap[c.id] = c;
-        }
-
-        // Group by date
-        final grouped = <String, List<Transaction>>{};
-        for (final t in transactions) {
-          grouped.putIfAbsent(t.date, () => []).add(t);
-        }
-
-        // Sort dates descending
-        final dates = grouped.keys.toList()
-          ..sort((a, b) => b.compareTo(a));
-
-        return RefreshIndicator(
-          color: AppTheme.amberAccent,
-          backgroundColor: AppTheme.zinc900,
-          onRefresh: () async {
-            HapticFeedback.lightImpact();
-            ref.invalidate(monthlyTransactionsProvider);
-            ref.invalidate(dashboardDataProvider);
-            await Future.delayed(600.ms);
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-            itemCount: dates.length,
-            itemBuilder: (context, index) {
-              final dateStr = dates[index];
-              final items = grouped[dateStr]!;
-              final date = DateTime.tryParse(dateStr) ?? DateTime.now();
-
-              return _DateGroup(
-                date: date,
-                transactions: items,
-                categoryMap: catMap,
-              );
-            },
+              ),
+            ],
           ),
         );
+      }
+
+      if (hasFilters) {
+        return const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off,
+                color: AppTheme.zinc600,
+                size: 48,
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Aucun résultat',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppTheme.zinc500,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Essayez de modifier vos filtres',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.zinc600,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+
+    final catMap = <int, Category>{};
+    final catList = categoriesAsync.value ?? [];
+    for (final c in catList) {
+      catMap[c.id] = c;
+    }
+
+    // Group by date
+    final grouped = <String, List<Transaction>>{};
+    for (final t in transactions) {
+      grouped.putIfAbsent(t.date, () => []).add(t);
+    }
+
+    // Sort dates descending
+    final dates = grouped.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    return RefreshIndicator(
+      color: AppTheme.amberAccent,
+      backgroundColor: AppTheme.zinc900,
+      onRefresh: () async {
+        HapticFeedback.lightImpact();
+        ref.invalidate(monthlyTransactionsProvider);
+        ref.invalidate(dashboardInfoProvider);
+        await Future.delayed(600.ms);
       },
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+        itemCount: dates.length,
+        itemBuilder: (context, index) {
+          final dateStr = dates[index];
+          final items = grouped[dateStr]!;
+          final date = DateTime.tryParse(dateStr) ?? DateTime.now();
+
+          return _DateGroup(
+            date: date,
+            transactions: items,
+            categoryMap: catMap,
+          );
+        },
+      ),
     );
   }
 }
@@ -392,7 +756,7 @@ class _TransactionCard extends ConsumerWidget {
         final repo = ref.read(transactionRepositoryProvider);
         final result = await repo.deleteEntry(transaction.id);
         ref.invalidate(monthlyTransactionsProvider);
-        ref.invalidate(dashboardDataProvider);
+        ref.invalidate(dashboardInfoProvider);
         ref.invalidate(recentTransactionsProvider);
         if (context.mounted) {
           result.when(
@@ -432,7 +796,7 @@ class _TransactionCard extends ConsumerWidget {
               ),
               child: Icon(
                 category != null
-                    ? _mapIcon(category!.icon)
+                    ? resolveCategoryIcon(category!.icon)
                     : Icons.receipt,
                 size: 18,
                 color: catColor,
@@ -495,23 +859,5 @@ class _TransactionCard extends ConsumerWidget {
     ).animate().fadeIn(
       duration: 300.ms,
     ).slideX(begin: 0.03, end: 0, duration: 300.ms);
-  }
-
-  IconData _mapIcon(String iconName) {
-    switch (iconName) {
-      case 'restaurant': return Icons.restaurant;
-      case 'directions_car': return Icons.directions_car;
-      case 'shopping_bag': return Icons.shopping_bag;
-      case 'movie': return Icons.movie;
-      case 'favorite': return Icons.favorite;
-      case 'school': return Icons.school;
-      case 'home': return Icons.home;
-      case 'bolt': return Icons.bolt;
-      case 'work': return Icons.work;
-      case 'computer': return Icons.computer;
-      case 'card_giftcard': return Icons.card_giftcard;
-      case 'more_horiz': return Icons.more_horiz;
-      default: return Icons.circle;
-    }
   }
 }

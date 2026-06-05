@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/icon_resolver.dart';
 import '../providers/app_providers.dart';
 import '../../data/database/app_database.dart';
 
@@ -40,7 +41,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         backgroundColor: AppTheme.zinc900,
         onRefresh: () async {
           HapticFeedback.lightImpact();
-          ref.invalidate(dashboardDataProvider);
+          ref.invalidate(dashboardInfoProvider);
           ref.invalidate(recentTransactionsProvider);
           ref.invalidate(currentBudgetProvider);
           await Future.delayed(600.ms);
@@ -97,7 +98,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 class _MonthlyOverviewCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(dashboardDataProvider);
+    final data = ref.watch(dashboardInfoProvider);
 
     return Card(
         child: Container(
@@ -251,7 +252,7 @@ class _PieChartSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(expenseCategoriesProvider);
-    final data = ref.watch(dashboardDataProvider);
+    final data = ref.watch(dashboardInfoProvider);
     final monthlyTx = ref.watch(monthlyTransactionsProvider);
 
     return Card(
@@ -313,7 +314,7 @@ class _PieChartSection extends ConsumerWidget {
 
 class _PieChart extends StatelessWidget {
   final List<Category> categories;
-  final DashboardData data;
+  final DashboardInfo data;
   final List<Transaction> monthlyTransactions;
 
   const _PieChart({
@@ -381,7 +382,7 @@ class _PieChart extends StatelessWidget {
 
   List<PieChartSectionData> _buildSections(
     List<Category> categories,
-    DashboardData data,
+    DashboardInfo data,
     Map<int, double> categorySpending,
   ) {
     final total = data.totalExpenses;
@@ -717,7 +718,7 @@ class _BudgetBar extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    _mapIcon(icon),
+                    resolveCategoryIcon(icon),
                     size: 16,
                     color: color.withValues(alpha: 0.8),
                   ),
@@ -756,39 +757,7 @@ class _BudgetBar extends StatelessWidget {
     );
   }
 
-  IconData _mapIcon(String iconName) {
-    switch (iconName) {
-      case 'restaurant':
-        return Icons.restaurant;
-      case 'directions_car':
-        return Icons.directions_car;
-      case 'shopping_bag':
-        return Icons.shopping_bag;
-      case 'movie':
-        return Icons.movie;
-      case 'favorite':
-        return Icons.favorite;
-      case 'school':
-        return Icons.school;
-      case 'home':
-        return Icons.home;
-      case 'bolt':
-        return Icons.bolt;
-      case 'work':
-        return Icons.work;
-      case 'computer':
-        return Icons.computer;
-      case 'card_giftcard':
-        return Icons.card_giftcard;
-      case 'more_horiz':
-        return Icons.more_horiz;
-      default:
-        return Icons.circle;
-    }
-  }
 }
-
-// ─── Recent Transactions Section ───────────────────────────────────────
 
 class _RecentTransactionsSection extends ConsumerWidget {
   const _RecentTransactionsSection();
@@ -868,7 +837,7 @@ class _RecentTransactionsSection extends ConsumerWidget {
                 }
 
                 final catMap = <int, Category>{};
-                final catList = categoriesAsync.valueOrNull ?? [];
+                final catList = categoriesAsync.value ?? [];
                 for (final c in catList) {
                   catMap[c.id] = c;
                 }
@@ -923,7 +892,7 @@ class _TransactionRow extends StatelessWidget {
             ),
             child: Icon(
               category != null
-                  ? _mapCatIcon(category!.icon)
+                  ? resolveCategoryIcon(category!.icon)
                   : Icons.receipt,
               size: 20,
               color: catColor,
@@ -970,23 +939,5 @@ class _TransactionRow extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  IconData _mapCatIcon(String iconName) {
-    switch (iconName) {
-      case 'restaurant': return Icons.restaurant;
-      case 'directions_car': return Icons.directions_car;
-      case 'shopping_bag': return Icons.shopping_bag;
-      case 'movie': return Icons.movie;
-      case 'favorite': return Icons.favorite;
-      case 'school': return Icons.school;
-      case 'home': return Icons.home;
-      case 'bolt': return Icons.bolt;
-      case 'work': return Icons.work;
-      case 'computer': return Icons.computer;
-      case 'card_giftcard': return Icons.card_giftcard;
-      case 'more_horiz': return Icons.more_horiz;
-      default: return Icons.circle;
-    }
   }
 }

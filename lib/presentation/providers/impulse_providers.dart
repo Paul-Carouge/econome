@@ -1,21 +1,16 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:econome/data/database/app_database.dart';
 import 'package:econome/presentation/providers/database_providers.dart';
 
-part 'impulse_providers.g.dart';
-
 // ─── Impulse Providers ────────────────────────────────────────────────
-@riverpod
-Stream<List<ImpulseItem>> impulseList(ImpulseListRef ref) {
+final impulseListProvider = StreamProvider<List<ImpulseItem>>((ref) {
   return ref.watch(impulseDaoProvider).watchAll();
-}
+});
 
-@riverpod
-Stream<List<ImpulseItem>> impulseCooling(ImpulseCoolingRef ref) {
+final impulseCoolingProvider = StreamProvider<List<ImpulseItem>>((ref) {
   return ref.watch(impulseDaoProvider).watchByStatus('cooling');
-}
+});
 
-@riverpod
-Future<int> impulseActiveCount(ImpulseActiveCountRef ref) async {
+final impulseActiveCountProvider = FutureProvider<int>((ref) async {
   return ref.watch(impulseDaoProvider).getActiveCount();
-}
+});

@@ -6,6 +6,7 @@ import 'package:econome/core/theme/app_theme.dart';
 import 'package:econome/data/database/app_database.dart';
 import 'package:econome/core/utils/notifications.dart';
 import 'package:econome/core/services/notification_service.dart';
+import 'package:econome/core/utils/icon_resolver.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
 
 // ─── Cooldown Duration Helper ───────────────────────────────────────────
@@ -27,41 +28,6 @@ int calculateCooldownDays(double amount) {
   if (amount < 50) return 3;
   if (amount < 200) return 5;
   return 7;
-}
-
-// ─── Icon Name Resolution ──────────────────────────────────────────────
-
-IconData resolveCategoryIcon(String iconName) {
-  switch (iconName) {
-    case 'restaurant':
-      return Icons.restaurant;
-    case 'directions_car':
-      return Icons.directions_car;
-    case 'shopping_bag':
-      return Icons.shopping_bag;
-    case 'movie':
-      return Icons.movie;
-    case 'favorite':
-      return Icons.favorite;
-    case 'school':
-      return Icons.school;
-    case 'home':
-      return Icons.home;
-    case 'bolt':
-      return Icons.bolt;
-    case 'work':
-      return Icons.work;
-    case 'computer':
-      return Icons.computer;
-    case 'card_giftcard':
-      return Icons.card_giftcard;
-    case 'more_horiz':
-      return Icons.more_horiz;
-    case 'savings':
-      return Icons.savings;
-    default:
-      return Icons.category;
-  }
 }
 
 // ─── Add Impulse Screen ────────────────────────────────────────────────
@@ -341,10 +307,10 @@ class _AddImpulseScreenState extends ConsumerState<AddImpulseScreen> {
 
       if (context.mounted) {
         result.when(
-          onSuccess: (_) {
+          onSuccess: (insertedId) {
             // Schedule a local notification when the cooling period ends
             scheduleCoolingReminder(ImpulseItem(
-              id: 0, // placeholder — real ID assigned by DB
+              id: insertedId,
               name: _nameController.text.trim(),
               amount: double.parse(
                   _amountController.text.replaceAll(',', '.')),

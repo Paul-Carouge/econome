@@ -6,4 +6,14 @@ part of 'category_dao.dart';
 mixin _$CategoryDaoMixin on DatabaseAccessor<AppDatabase> {
   $CategoriesTable get categories => attachedDatabase.categories;
   $TransactionsTable get transactions => attachedDatabase.transactions;
+  CategoryDaoManager get managers => CategoryDaoManager(this);
+}
+
+class CategoryDaoManager {
+  final _$CategoryDaoMixin _db;
+  CategoryDaoManager(this._db);
+  $$CategoriesTableTableManager get categories =>
+      $$CategoriesTableTableManager(_db.attachedDatabase, _db.categories);
+  $$TransactionsTableTableManager get transactions =>
+      $$TransactionsTableTableManager(_db.attachedDatabase, _db.transactions);
 }

@@ -9,11 +9,15 @@ import 'data/database/app_database.dart';
 import 'data/database/database_builder.dart';
 import 'data/database/dao/category_dao.dart';
 import 'presentation/providers/provider_app.dart';
+import 'core/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('fr_FR', null);
+
+  // Initialisation des notifications
+  await initNotificationService();
 
   // Initialisation DB + seed data
   final db = buildDatabase();
