@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/icon_resolver.dart';
 import '../../core/utils/notifications.dart';
+import '../../core/services/widget_update_service.dart';
 import '../providers/app_providers.dart';
 import '../../data/database/app_database.dart';
 
@@ -971,6 +972,12 @@ class _TransactionCard extends ConsumerWidget {
         if (context.mounted) {
           result.when(
             onSuccess: (_) {
+              // Mettre à jour le widget d'accueil
+              WidgetUpdateService.updateWidget(
+                balance: '—',
+                balanceColor: '#A1A1AA',
+              );
+
               showSuccess(
                 context,
                 'Transaction supprimée',

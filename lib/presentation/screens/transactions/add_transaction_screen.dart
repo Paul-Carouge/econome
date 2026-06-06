@@ -6,6 +6,7 @@ import 'package:econome/core/theme/app_theme.dart';
 import 'package:econome/data/database/app_database.dart';
 import 'package:econome/presentation/providers/app_providers.dart';
 import 'package:econome/core/utils/notifications.dart';
+import 'package:econome/core/services/widget_update_service.dart';
 import 'package:econome/core/utils/icon_resolver.dart';
 
 // ─── Add Transaction Screen ────────────────────────────────────────────
@@ -358,6 +359,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           onSuccess: (_) {
             showSuccess(context, 'Transaction ajoutée');
 
+            // Mettre à jour le widget d'accueil
+            _updateHomeWidget();
+
             // Pop all the way back
             final routeState = GoRouterState.of(context);
             if (routeState.uri.toString().startsWith('/impulse')) {
@@ -378,5 +382,35 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  Future<void> _updateHomeWidget() async {
+    try {
+      final now = DateTime.now();
+      final txRepo = ref.read(transactionRepositoryProvider);
+      final recent = await txRepo.getRecent(3);
+      final summary = await txRepo.getMonthlySummary(now.month, now.year);
+
+      await summary.when(
+        onSuccess: (s) {
+          WidgetUpdateService.updateWidget(
+            balance: WidgetUpdateService.formatAmount(s.balance),
+            balanceColor: WidgetUpdateService.colorForBalance(s.balance),
+            budgetLabel: '',
+            recentTransactions: recent.when(
+              onSuccess: (txs) => txs
+                  .map((t) => WidgetUpdateService.formatTransaction(
+                        t.description ?? '',
+                        t.amount,
+                        t.type,
+                      ))
+                  .toList(),
+              onFailure: (_) => [],
+            ),
+          );
+        },
+        onFailure: (_) {},
+      );
+    } catch (_) {}
   }
 }
