@@ -8,6 +8,7 @@ import 'package:econome/presentation/screens/dashboard_screen.dart';
 import 'package:econome/presentation/screens/transactions_screen.dart';
 import 'package:econome/presentation/screens/budgets/budgets_screen.dart';
 import 'package:econome/presentation/screens/savings/savings_screen.dart';
+import 'package:econome/presentation/screens/analytics_screen.dart';
 import 'package:econome/presentation/screens/settings/settings_screen.dart';
 import 'package:econome/presentation/screens/transactions/add_transaction_screen.dart';
 import 'package:econome/presentation/screens/savings/add_savings_goal_screen.dart';
@@ -62,6 +63,11 @@ GoRouter _buildRouter(bool onboardingComplete) {
             path: '/home/savings',
             name: 'savings',
             builder: (context, state) => const SavingsScreen(),
+          ),
+          GoRoute(
+            path: '/home/analytics',
+            name: 'analytics',
+            builder: (context, state) => const AnalyticsScreen(),
           ),
           GoRoute(
             path: '/home/settings',
@@ -131,6 +137,11 @@ class _ShellScaffold extends StatelessWidget {
               label: 'Transactions',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.analytics_outlined),
+              activeIcon: Icon(Icons.analytics),
+              label: 'Analyses',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet_outlined),
               activeIcon: Icon(Icons.account_balance_wallet),
               label: 'Budgets',
@@ -139,11 +150,6 @@ class _ShellScaffold extends StatelessWidget {
               icon: Icon(Icons.savings_outlined),
               activeIcon: Icon(Icons.savings),
               label: 'Épargne',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings),
-              label: 'Réglages',
             ),
           ],
         ),
@@ -155,9 +161,9 @@ class _ShellScaffold extends StatelessWidget {
     final location = GoRouterState.of(context).uri.toString();
     if (location.startsWith('/home/dashboard')) return 0;
     if (location.startsWith('/home/transactions')) return 1;
-    if (location.startsWith('/home/budgets')) return 2;
-    if (location.startsWith('/home/savings')) return 3;
-    if (location.startsWith('/home/settings')) return 4;
+    if (location.startsWith('/home/analytics')) return 2;
+    if (location.startsWith('/home/budgets')) return 3;
+    if (location.startsWith('/home/savings')) return 4;
     return 0;
   }
 
@@ -165,9 +171,9 @@ class _ShellScaffold extends StatelessWidget {
     switch (index) {
       case 0: context.go('/home/dashboard');
       case 1: context.go('/home/transactions');
-      case 2: context.go('/home/budgets');
-      case 3: context.go('/home/savings');
-      case 4: context.go('/home/settings');
+      case 2: context.go('/home/analytics');
+      case 3: context.go('/home/budgets');
+      case 4: context.go('/home/savings');
     }
   }
 }

@@ -6,7 +6,7 @@ class AppConstants {
 
   static const String appName = 'Économe';
   static const String appTagline = 'Think before you spend';
-  static const String appVersion = '1.2.2';
+  static const String appVersion = '1.4.0';
   static const String appDescription =
       'Économe est une application de finances personnelles conçue par Paul Carouge. '
       'Suivez vos dépenses, gérez votre budget mensuel, épargnez pour vos objectifs, '

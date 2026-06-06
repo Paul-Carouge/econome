@@ -30,6 +30,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         title: const Text('Économe'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => context.push('/home/settings'),
+            tooltip: 'Réglages',
+          ),
+          IconButton(
             icon: const Icon(Icons.trending_up_outlined),
             onPressed: () => context.push('/impulse'),
             tooltip: 'Anti-Impulsion',

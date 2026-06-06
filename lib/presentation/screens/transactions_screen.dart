@@ -971,12 +971,88 @@ class _TransactionCard extends ConsumerWidget {
         ref.invalidate(recentTransactionsProvider);
         if (context.mounted) {
           result.when(
-            onSuccess: (_) {
-              // Mettre à jour le widget d'accueil
-              WidgetUpdateService.updateWidget(
-                balance: '—',
-                balanceColor: '#A1A1AA',
-              );
+            onSuccess: (_) async {
+              // Mettre à jour tous les widgets d'accueil
+              try {
+                final now = DateTime.now();
+                final txRepo = ref.read(transactionRepositoryProvider);
+                final budgetRepo = ref.read(budgetRepositoryProvider);
+                final savingsRepo = ref.read(savingsRepositoryProvider);
+
+                final summary = await txRepo.getMonthlySummary(now.month, now.year);
+                final budgetResult = await budgetRepo.getByMonth(now.month, now.year);
+                final recent = await txRepo.getRecent(3);
+                final savingsResult = await savingsRepo.getAll();
+
+                String savingsName = '';
+                String savingsCurrent = '';
+                String savingsTarget = '';
+                String savingsPct = '0';
+
+                savingsResult.when(
+                  onSuccess: (goals) {
+                    if (goals.isNotEmpty) {
+                      final topGoal = goals.first;
+                      savingsName = topGoal.name;
+                      savingsCurrent = WidgetUpdateService.formatAmount(topGoal.currentAmount);
+                      savingsTarget = WidgetUpdateService.formatAmount(topGoal.targetAmount);
+                      savingsPct = WidgetUpdateService.formatPercent(
+                        topGoal.targetAmount > 0
+                            ? topGoal.currentAmount / topGoal.targetAmount
+                            : 0.0,
+                      );
+                    }
+                  },
+                  onFailure: (_) {},
+                );
+
+                summary.when(
+                  onSuccess: (s) async {
+                    String budgetLabel = '';
+                    String budgetSpentStr = '';
+                    String budgetTotalStr = '—';
+                    String budgetPct = '0';
+
+                    budgetResult.when(
+                      onSuccess: (budget) {
+                        if (budget != null && budget.totalBudget > 0) {
+                          budgetLabel = 'Budget : ${WidgetUpdateService.formatAmount(budget.totalBudget)}';
+                          budgetSpentStr = '${s.expenses.toStringAsFixed(0)} €';
+                          budgetTotalStr = '${budget.totalBudget.toStringAsFixed(0)} €';
+                          budgetPct = WidgetUpdateService.formatPercent(s.expenses / budget.totalBudget);
+                        }
+                      },
+                      onFailure: (_) {},
+                    );
+
+                    final txs = recent.when<List<String>>(
+                      onSuccess: (list) => list
+                          .map((t) => WidgetUpdateService.formatTransaction(
+                                t.description ?? '',
+                                t.amount,
+                                t.type,
+                              ))
+                          .toList(),
+                      onFailure: (_) => [],
+                    );
+
+                    await WidgetUpdateService.updateAll(
+                      balance: WidgetUpdateService.formatAmount(s.balance),
+                      balanceColor: WidgetUpdateService.colorForBalance(s.balance),
+                      budgetLabel: budgetLabel,
+                      budgetSpent: budgetSpentStr,
+                      budgetTotal: budgetTotalStr,
+                      budgetPct: budgetPct,
+                      recentTransactions: txs,
+                      savingsName: savingsName,
+                      savingsCurrent: savingsCurrent,
+                      savingsTarget: savingsTarget,
+                      savingsPct: savingsPct,
+                    );
+                  },
+                  onFailure: (_) {},
+                );
+              } catch (_) {}
 
               showSuccess(
                 context,
