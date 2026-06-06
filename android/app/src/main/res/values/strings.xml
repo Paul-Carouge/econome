@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_full_desc">Solde, budget et 3 dernières transactions</string>
+    <string name="widget_compact_desc">Solde uniquement — format compact</string>
+    <string name="widget_budget_desc">Barre de progression du budget mensuel</string>
+    <string name="widget_savings_desc">Progression du premier objectif d\'épargne</string>
+</resources>

@@ -25,20 +25,16 @@
         android:textColor="#F59E0B"
         android:layout_marginTop="4dp" />
 
-    <!-- Progress bar track -->
-    <FrameLayout
+    <ProgressBar
+        android:id="@+id/budget_progress"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="12dp"
+        android:layout_height="10dp"
         android:layout_marginTop="10dp"
-        android:background="#27272A">
-
-        <View
-            android:id="@+id/budget_widget_progress"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:background="#F59E0B" />
-
-    </FrameLayout>
+        android:progress="0"
+        android:max="100"
+        android:progressTint="#F59E0B"
+        android:progressBackgroundTint="#27272A" />
 
     <TextView
         android:id="@+id/budget_widget_label"
