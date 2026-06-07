@@ -5,8 +5,8 @@ import 'package:home_widget/home_widget.dart';
 /// 4 types de widgets disponibles :
 /// - **Full** (EconomeWidget) : solde + budget + 3 dernières transactions
 /// - **Compact** (CompactWidget) : solde uniquement, large police
-/// - **Budget** (BudgetWidget) : barre de progression du budget
-/// - **Savings** (SavingsWidget) : progression du 1er objectif d'épargne
+/// - **Budget** (BudgetWidget) : barre de progression du budget (rouge si dépassé)
+/// - **Savings** (SavingsWidget) : progression du 1er objectif d'épargne (vert vif si atteint)
 class WidgetUpdateService {
   static const _fullWidget = 'EconomeWidget';
   static const _compactWidget = 'CompactWidget';
@@ -21,6 +21,7 @@ class WidgetUpdateService {
     String budgetSpent = '',
     String budgetTotal = '',
     String budgetPct = '0',
+    bool overBudget = false,
     List<String> recentTransactions = const [],
     String savingsName = '',
     String savingsCurrent = '',
@@ -49,6 +50,7 @@ class WidgetUpdateService {
 
       // ── Budget Widget ──
       await HomeWidget.saveWidgetData<String>('widgetName', _budgetWidget);
+      await HomeWidget.saveWidgetData<bool>('overBudget', overBudget);
       await HomeWidget.saveWidgetData<String>('budgetLabel', budgetLabel);
       await HomeWidget.saveWidgetData<String>('budgetSpent', budgetSpent);
       await HomeWidget.saveWidgetData<String>('budgetTotal', budgetTotal);

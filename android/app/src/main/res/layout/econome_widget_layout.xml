@@ -3,55 +3,74 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp"
-    android:background="#0F1011">
+    android:background="@drawable/widget_bg"
+    android:padding="14dp"
+    android:clickable="true"
+    android:focusable="true">
 
+    <!-- Solde -->
     <TextView
         android:id="@+id/balance_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="—"
-        android:textSize="22sp"
+        android:textSize="26sp"
         android:textStyle="bold"
         android:gravity="center_horizontal"
+        android:letterSpacing="0.02"
         android:textColor="#A1A1AA" />
 
+    <!-- Budget label -->
     <TextView
         android:id="@+id/budget_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text=""
         android:textSize="11sp"
-        android:gravity="center_horizontal"
         android:textColor="#8A8F98"
-        android:layout_marginTop="4dp" />
+        android:gravity="center_horizontal"
+        android:layout_marginTop="3dp" />
 
+    <!-- Separator subtil -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1A1A1E"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="6dp" />
+
+    <!-- 3 dernières transactions -->
     <TextView
         android:id="@+id/tx1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:text=""
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:textColor="#A1A1AA"
-        android:singleLine="true"
-        android:layout_marginTop="8dp" />
+        android:gravity="center_vertical"
+        android:singleLine="true" />
 
     <TextView
         android:id="@+id/tx2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:text=""
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:textColor="#A1A1AA"
+        android:gravity="center_vertical"
         android:singleLine="true" />
 
     <TextView
         android:id="@+id/tx3"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:text=""
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:textColor="#A1A1AA"
+        android:gravity="center_vertical"
         android:singleLine="true" />
 
 </LinearLayout>

@@ -3,8 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@drawable/widget_bg"
     android:padding="14dp"
-    android:background="#0F1011">
+    android:clickable="true"
+    android:focusable="true">
 
     <TextView
         android:id="@+id/savings_widget_title"
@@ -12,14 +14,16 @@
         android:layout_height="wrap_content"
         android:text="Objectif épargne"
         android:textSize="10sp"
-        android:textColor="#71717A" />
+        android:textColor="#71717A"
+        android:textAllCaps="true"
+        android:letterSpacing="0.06" />
 
     <TextView
         android:id="@+id/savings_widget_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text=""
-        android:textSize="13sp"
+        android:textSize="12sp"
         android:textColor="#E4E4E7"
         android:layout_marginTop="2dp"
         android:singleLine="true"
@@ -30,10 +34,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="—"
-        android:textSize="16sp"
+        android:textSize="17sp"
         android:textStyle="bold"
-        android:textColor="#F59E0B"
-        android:layout_marginTop="4dp" />
+        android:textColor="#10B981"
+        android:layout_marginTop="3dp" />
 
     <ProgressBar
         android:id="@+id/savings_progress"
@@ -43,16 +47,18 @@
         android:layout_marginTop="8dp"
         android:progress="0"
         android:max="100"
-        android:progressTint="#22C55E"
+        android:progressDrawable="@drawable/widget_progress_savings"
         android:progressBackgroundTint="#27272A" />
 
     <TextView
         android:id="@+id/savings_widget_pct"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:text=""
         android:textSize="10sp"
         android:textColor="#A1A1AA"
-        android:layout_marginTop="4dp" />
+        android:layout_marginTop="3dp"
+        android:gravity="center_vertical" />
 
 </LinearLayout>

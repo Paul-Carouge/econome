@@ -3,8 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@drawable/widget_bg"
     android:padding="14dp"
-    android:background="#0F1011">
+    android:clickable="true"
+    android:focusable="true">
 
     <TextView
         android:id="@+id/budget_widget_title"
@@ -13,6 +15,8 @@
         android:text="Budget mensuel"
         android:textSize="10sp"
         android:textColor="#71717A"
+        android:textAllCaps="true"
+        android:letterSpacing="0.06"
         android:gravity="start" />
 
     <TextView
@@ -33,16 +37,18 @@
         android:layout_marginTop="10dp"
         android:progress="0"
         android:max="100"
-        android:progressTint="#F59E0B"
+        android:progressDrawable="@drawable/widget_progress_budget"
         android:progressBackgroundTint="#27272A" />
 
     <TextView
         android:id="@+id/budget_widget_label"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:text=""
         android:textSize="10sp"
         android:textColor="#A1A1AA"
-        android:layout_marginTop="6dp" />
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical" />
 
 </LinearLayout>

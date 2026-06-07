@@ -3,9 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="10dp"
-    android:background="#0F1011"
-    android:gravity="center">
+    android:background="@drawable/widget_bg_compact"
+    android:padding="12dp"
+    android:gravity="center"
+    android:clickable="true"
+    android:focusable="true">
 
     <TextView
         android:id="@+id/compact_label"
@@ -14,17 +16,20 @@
         android:text="Solde"
         android:textSize="9sp"
         android:textColor="#71717A"
-        android:gravity="center" />
+        android:letterSpacing="0.08"
+        android:gravity="center"
+        android:textAllCaps="true" />
 
     <TextView
         android:id="@+id/compact_balance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="—"
-        android:textSize="24sp"
+        android:textSize="26sp"
         android:textStyle="bold"
         android:gravity="center"
         android:layout_marginTop="4dp"
+        android:letterSpacing="0.02"
         android:textColor="#A1A1AA" />
 
 </LinearLayout>

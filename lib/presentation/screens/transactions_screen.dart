@@ -1013,6 +1013,7 @@ class _TransactionCard extends ConsumerWidget {
                     String budgetTotalStr = '—';
                     String budgetPct = '0';
 
+                    bool overBudget = false;
                     budgetResult.when(
                       onSuccess: (budget) {
                         if (budget != null && budget.totalBudget > 0) {
@@ -1020,6 +1021,7 @@ class _TransactionCard extends ConsumerWidget {
                           budgetSpentStr = '${s.expenses.toStringAsFixed(0)} €';
                           budgetTotalStr = '${budget.totalBudget.toStringAsFixed(0)} €';
                           budgetPct = WidgetUpdateService.formatPercent(s.expenses / budget.totalBudget);
+                          overBudget = s.expenses > budget.totalBudget;
                         }
                       },
                       onFailure: (_) {},
@@ -1043,6 +1045,7 @@ class _TransactionCard extends ConsumerWidget {
                       budgetSpent: budgetSpentStr,
                       budgetTotal: budgetTotalStr,
                       budgetPct: budgetPct,
+                      overBudget: overBudget,
                       recentTransactions: txs,
                       savingsName: savingsName,
                       savingsCurrent: savingsCurrent,

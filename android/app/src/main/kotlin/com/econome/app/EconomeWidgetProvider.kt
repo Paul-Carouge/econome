@@ -1,15 +1,19 @@
 package com.econome.app
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.widget.RemoteViews
 
 // ─── Shared Helper ──────────────────────────────────────────────────
 
 object WidgetHelper {
     const val PREF_NAME = "HomeWidgetPreferences"
+    const val KEY_OVER_BUDGET = "overBudget"
 
     fun parseColor(hex: String): Int {
         return try {
@@ -17,6 +21,24 @@ object WidgetHelper {
         } catch (_: Exception) {
             Color.parseColor("#A1A1AA")
         }
+    }
+
+    /** Crée un PendingIntent pour ouvrir l'application au tap. */
+    fun createOpenAppIntent(context: Context, widgetId: Int): PendingIntent {
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: run {
+            // Fallback: intent explicite vers MainActivity
+            Intent().apply {
+                setClassName(context.packageName, "${context.packageName}.MainActivity")
+            }
+        }
+        intent?.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        return PendingIntent.getActivity(context, widgetId, intent, flags)
     }
 }
 
@@ -45,6 +67,7 @@ class EconomeWidgetProvider : AppWidgetProvider() {
         val balance = prefs.getString("balance", "—") ?: "—"
         val balanceColor = WidgetHelper.parseColor(prefs.getString("balanceColor", "#A1A1AA") ?: "#A1A1AA")
         val budgetLabel = prefs.getString("budgetLabel", "") ?: ""
+
         val tx1 = prefs.getString("tx1", "") ?: ""
         val tx2 = prefs.getString("tx2", "") ?: ""
         val tx3 = prefs.getString("tx3", "") ?: ""
@@ -65,6 +88,13 @@ class EconomeWidgetProvider : AppWidgetProvider() {
         views.setViewVisibility(R.id.tx2, if (tx2.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE)
         views.setTextViewText(R.id.tx3, tx3)
         views.setViewVisibility(R.id.tx3, if (tx3.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE)
+
+        // Tap → ouvre l'app
+        views.setOnClickPendingIntent(R.id.balance_text, null)
+        views.setOnClickPendingIntent(
+            R.id.balance_text,
+            WidgetHelper.createOpenAppIntent(context, id)
+        )
 
         manager.updateAppWidget(id, views)
     }
@@ -89,6 +119,12 @@ class CompactWidgetProvider : AppWidgetProvider() {
             views.setTextColor(R.id.compact_balance, balanceColor)
             views.setTextViewText(R.id.compact_label, "Solde")
 
+            // Tap → ouvre l'app
+            views.setOnClickPendingIntent(
+                R.id.compact_balance,
+                WidgetHelper.createOpenAppIntent(context, id)
+            )
+
             appWidgetManager.updateAppWidget(id, views)
         }
     }
@@ -110,14 +146,31 @@ class BudgetWidgetProvider : AppWidgetProvider() {
             val budgetSpent = prefs.getString("budgetSpent", "0") ?: "0"
             val budgetTotal = prefs.getString("budgetTotal", "0") ?: "0"
             val budgetPct = prefs.getString("budgetPct", "0") ?: "0"
+            val overBudget = prefs.getBoolean(WidgetHelper.KEY_OVER_BUDGET, false)
 
             views.setTextViewText(R.id.budget_widget_title, "Budget mensuel")
             views.setTextViewText(R.id.budget_widget_amount, "$budgetSpent / $budgetTotal")
-            views.setTextViewText(R.id.budget_widget_label, "$budgetLabel  •  $budgetPct%")
+            views.setTextViewText(R.id.budget_widget_label, "$budgetLabel  ·  $budgetPct%")
 
-            // Use Android's ProgressBar.setProgress(int) via RemoteViews
-            val pctInt = (budgetPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f).toInt()
+            // Couleur du montant et de la barre selon dépassement
+            val pctFloat = budgetPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
+            val pctInt = pctFloat.toInt()
+
+            if (overBudget) {
+                views.setTextColor(R.id.budget_widget_amount, Color.parseColor("#EF4444"))
+                views.setInt(R.id.budget_progress, "setProgressDrawableTiled", R.drawable.widget_progress_overbudget)
+            } else {
+                views.setTextColor(R.id.budget_widget_amount, Color.parseColor("#F59E0B"))
+                views.setInt(R.id.budget_progress, "setProgressDrawableTiled", R.drawable.widget_progress_budget)
+            }
+
             views.setInt(R.id.budget_progress, "setProgress", pctInt)
+
+            // Tap → ouvre l'app
+            views.setOnClickPendingIntent(
+                R.id.budget_widget_amount,
+                WidgetHelper.createOpenAppIntent(context, id)
+            )
 
             appWidgetManager.updateAppWidget(id, views)
         }
@@ -145,8 +198,23 @@ class SavingsWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.savings_widget_amount, "$goalCurrent / $goalTarget")
             views.setTextViewText(R.id.savings_widget_pct, "${goalPct}% atteint")
 
-            val pctInt = (goalPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f).toInt()
+            // Changement de couleur si objectif atteint
+            val pctFloat = goalPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
+            val pctInt = pctFloat.toInt()
+
+            if (pctFloat >= 100f) {
+                views.setTextColor(R.id.savings_widget_amount, Color.parseColor("#22C55E"))
+            } else {
+                views.setTextColor(R.id.savings_widget_amount, Color.parseColor("#10B981"))
+            }
+
             views.setInt(R.id.savings_progress, "setProgress", pctInt)
+
+            // Tap → ouvre l'app
+            views.setOnClickPendingIntent(
+                R.id.savings_widget_amount,
+                WidgetHelper.createOpenAppIntent(context, id)
+            )
 
             appWidgetManager.updateAppWidget(id, views)
         }
