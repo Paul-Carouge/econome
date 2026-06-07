@@ -47,8 +47,7 @@
         android:layout_marginTop="8dp"
         android:progress="0"
         android:max="100"
-        android:progressDrawable="@drawable/widget_progress_savings"
-        android:progressBackgroundTint="#27272A" />
+        android:progressDrawable="@drawable/widget_progress_savings" />
 
     <TextView
         android:id="@+id/savings_widget_pct"

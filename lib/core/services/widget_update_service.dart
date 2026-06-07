@@ -8,10 +8,12 @@ import 'package:home_widget/home_widget.dart';
 /// - **Budget** (BudgetWidget) : barre de progression du budget (rouge si dépassé)
 /// - **Savings** (SavingsWidget) : progression du 1er objectif d'épargne (vert vif si atteint)
 class WidgetUpdateService {
-  static const _fullWidget = 'EconomeWidget';
-  static const _compactWidget = 'CompactWidget';
-  static const _budgetWidget = 'BudgetWidget';
-  static const _savingsWidget = 'SavingsWidget';
+  // Les noms DOIVENT correspondre exactement aux classes Kotlin AppWidgetProvider
+  // (suffixées par 'Provider'), sinon Class.forName échoue silencieusement.
+  static const _fullWidget = 'EconomeWidgetProvider';
+  static const _compactWidget = 'CompactWidgetProvider';
+  static const _budgetWidget = 'BudgetWidgetProvider';
+  static const _savingsWidget = 'SavingsWidgetProvider';
 
   /// Met à jour tous les types de widgets avec les données actuelles.
   static Future<void> updateAll({

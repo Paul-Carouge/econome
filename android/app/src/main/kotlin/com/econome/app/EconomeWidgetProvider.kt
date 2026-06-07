@@ -26,7 +26,6 @@ object WidgetHelper {
     /** Crée un PendingIntent pour ouvrir l'application au tap. */
     fun createOpenAppIntent(context: Context, widgetId: Int): PendingIntent {
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: run {
-            // Fallback: intent explicite vers MainActivity
             Intent().apply {
                 setClassName(context.packageName, "${context.packageName}.MainActivity")
             }
@@ -89,8 +88,7 @@ class EconomeWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.tx3, tx3)
         views.setViewVisibility(R.id.tx3, if (tx3.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE)
 
-        // Tap → ouvre l'app
-        views.setOnClickPendingIntent(R.id.balance_text, null)
+        // Tap → ouvre l'app (sur le bouton racine ou le solde)
         views.setOnClickPendingIntent(
             R.id.balance_text,
             WidgetHelper.createOpenAppIntent(context, id)
@@ -152,19 +150,16 @@ class BudgetWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.budget_widget_amount, "$budgetSpent / $budgetTotal")
             views.setTextViewText(R.id.budget_widget_label, "$budgetLabel  ·  $budgetPct%")
 
-            // Couleur du montant et de la barre selon dépassement
-            val pctFloat = budgetPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
-            val pctInt = pctFloat.toInt()
-
+            // Couleur du montant selon dépassement (la barre est gérée par XML)
             if (overBudget) {
                 views.setTextColor(R.id.budget_widget_amount, Color.parseColor("#EF4444"))
-                views.setInt(R.id.budget_progress, "setProgressDrawableTiled", R.drawable.widget_progress_overbudget)
             } else {
                 views.setTextColor(R.id.budget_widget_amount, Color.parseColor("#F59E0B"))
-                views.setInt(R.id.budget_progress, "setProgressDrawableTiled", R.drawable.widget_progress_budget)
             }
 
-            views.setInt(R.id.budget_progress, "setProgress", pctInt)
+            // Valeur de la barre de progression
+            val pctFloat = budgetPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
+            views.setInt(R.id.budget_progress, "setProgress", pctFloat.toInt())
 
             // Tap → ouvre l'app
             views.setOnClickPendingIntent(
@@ -198,17 +193,16 @@ class SavingsWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.savings_widget_amount, "$goalCurrent / $goalTarget")
             views.setTextViewText(R.id.savings_widget_pct, "${goalPct}% atteint")
 
-            // Changement de couleur si objectif atteint
+            // Couleur selon progression : vert vif si objectif atteint
             val pctFloat = goalPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
-            val pctInt = pctFloat.toInt()
-
             if (pctFloat >= 100f) {
                 views.setTextColor(R.id.savings_widget_amount, Color.parseColor("#22C55E"))
             } else {
                 views.setTextColor(R.id.savings_widget_amount, Color.parseColor("#10B981"))
             }
 
-            views.setInt(R.id.savings_progress, "setProgress", pctInt)
+            // Valeur de la barre de progression
+            views.setInt(R.id.savings_progress, "setProgress", pctFloat.toInt())
 
             // Tap → ouvre l'app
             views.setOnClickPendingIntent(

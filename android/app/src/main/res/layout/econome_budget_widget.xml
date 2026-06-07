@@ -37,8 +37,7 @@
         android:layout_marginTop="10dp"
         android:progress="0"
         android:max="100"
-        android:progressDrawable="@drawable/widget_progress_budget"
-        android:progressBackgroundTint="#27272A" />
+        android:progressDrawable="@drawable/widget_progress_budget" />
 
     <TextView
         android:id="@+id/budget_widget_label"
