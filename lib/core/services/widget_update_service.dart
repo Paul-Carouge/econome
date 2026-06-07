@@ -74,13 +74,14 @@ class WidgetUpdateService {
   // ─── Helpers ──────────────────────────────────────────────────────
 
   /// Formate un montant en euros pour le widget.
+  /// Les négatifs reçoivent un vrai signe moins.
+  /// Les positifs en compact/widget n'ont pas de + (sauf transactions income).
   static String formatAmount(double amount) {
-    final sign = amount >= 0 ? '+' : '';
-    final abs = amount.abs();
-    if (abs >= 1000000) {
-      return '$sign${(abs / 1000000).toStringAsFixed(1)}M €';
+    if (amount.abs() >= 1000000) {
+      return '${amount >= 0 ? '+' : '-'}${(amount.abs() / 1000000).toStringAsFixed(1)}M €';
     }
-    return '$sign${abs.toStringAsFixed(0)} €';
+    // amount.toStringAsFixed(0) inclut déjà le signe pour les négatifs
+    return '${amount.toStringAsFixed(0)} €';
   }
 
   /// Retourne la couleur hex pour un solde.

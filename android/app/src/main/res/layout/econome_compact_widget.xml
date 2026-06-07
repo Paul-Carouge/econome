@@ -5,9 +5,7 @@
     android:orientation="vertical"
     android:background="@drawable/widget_bg_compact"
     android:padding="12dp"
-    android:gravity="center"
-    android:clickable="true"
-    android:focusable="true">
+    android:gravity="center">
 
     <TextView
         android:id="@+id/compact_label"

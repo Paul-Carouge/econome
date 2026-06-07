@@ -88,7 +88,7 @@ class EconomeWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.tx3, tx3)
         views.setViewVisibility(R.id.tx3, if (tx3.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE)
 
-        // Tap → ouvre l'app (sur le bouton racine ou le solde)
+        // Tap → ouvre l'app
         views.setOnClickPendingIntent(
             R.id.balance_text,
             WidgetHelper.createOpenAppIntent(context, id)
@@ -140,26 +140,37 @@ class BudgetWidgetProvider : AppWidgetProvider() {
         for (id in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.econome_budget_widget)
 
-            val budgetLabel = prefs.getString("budgetLabel", "—") ?: "—"
-            val budgetSpent = prefs.getString("budgetSpent", "0") ?: "0"
-            val budgetTotal = prefs.getString("budgetTotal", "0") ?: "0"
+            val budgetLabel = prefs.getString("budgetLabel", "") ?: ""
+            val budgetSpent = prefs.getString("budgetSpent", "") ?: ""
+            val budgetTotal = prefs.getString("budgetTotal", "") ?: ""
             val budgetPct = prefs.getString("budgetPct", "0") ?: "0"
             val overBudget = prefs.getBoolean(WidgetHelper.KEY_OVER_BUDGET, false)
 
             views.setTextViewText(R.id.budget_widget_title, "Budget mensuel")
-            views.setTextViewText(R.id.budget_widget_amount, "$budgetSpent / $budgetTotal")
-            views.setTextViewText(R.id.budget_widget_label, "$budgetLabel  ·  $budgetPct%")
 
-            // Couleur du montant selon dépassement (la barre est gérée par XML)
-            if (overBudget) {
-                views.setTextColor(R.id.budget_widget_amount, Color.parseColor("#EF4444"))
+            if (budgetTotal.isNotEmpty()) {
+                views.setTextViewText(R.id.budget_widget_amount, "$budgetSpent / $budgetTotal")
+                views.setTextViewText(R.id.budget_widget_label, "$budgetLabel  ·  $budgetPct%")
+
+                // Couleur du montant selon dépassement
+                if (overBudget) {
+                    views.setTextColor(R.id.budget_widget_amount, Color.parseColor("#EF4444"))
+                } else {
+                    views.setTextColor(R.id.budget_widget_amount, Color.parseColor("#F59E0B"))
+                }
+
+                // Valeur de la barre de progression
+                val pctFloat = budgetPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
+                views.setInt(R.id.budget_progress, "setProgress", pctFloat.toInt())
+                views.setViewVisibility(R.id.budget_progress, android.view.View.VISIBLE)
+                views.setViewVisibility(R.id.budget_widget_label, android.view.View.VISIBLE)
             } else {
-                views.setTextColor(R.id.budget_widget_amount, Color.parseColor("#F59E0B"))
+                // Aucun budget configuré : état vide
+                views.setTextViewText(R.id.budget_widget_amount, "—")
+                views.setTextViewText(R.id.budget_widget_label, "")
+                views.setViewVisibility(R.id.budget_progress, android.view.View.GONE)
+                views.setViewVisibility(R.id.budget_widget_label, android.view.View.GONE)
             }
-
-            // Valeur de la barre de progression
-            val pctFloat = budgetPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
-            views.setInt(R.id.budget_progress, "setProgress", pctFloat.toInt())
 
             // Tap → ouvre l'app
             views.setOnClickPendingIntent(
@@ -185,24 +196,37 @@ class SavingsWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.econome_savings_widget)
 
             val goalName = prefs.getString("savingsName", "") ?: ""
-            val goalCurrent = prefs.getString("savingsCurrent", "0 €") ?: "0 €"
-            val goalTarget = prefs.getString("savingsTarget", "0 €") ?: "0 €"
+            val goalCurrent = prefs.getString("savingsCurrent", "") ?: ""
+            val goalTarget = prefs.getString("savingsTarget", "") ?: ""
             val goalPct = prefs.getString("savingsPct", "0") ?: "0"
 
-            views.setTextViewText(R.id.savings_widget_name, goalName)
-            views.setTextViewText(R.id.savings_widget_amount, "$goalCurrent / $goalTarget")
-            views.setTextViewText(R.id.savings_widget_pct, "${goalPct}% atteint")
+            views.setTextViewText(R.id.savings_widget_title, "Objectif épargne")
 
-            // Couleur selon progression : vert vif si objectif atteint
-            val pctFloat = goalPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
-            if (pctFloat >= 100f) {
-                views.setTextColor(R.id.savings_widget_amount, Color.parseColor("#22C55E"))
+            if (goalName.isNotEmpty() && goalTarget.isNotEmpty()) {
+                // Objectif configuré : afficher les données
+                views.setTextViewText(R.id.savings_widget_name, goalName)
+                views.setViewVisibility(R.id.savings_widget_name, android.view.View.VISIBLE)
+                views.setTextViewText(R.id.savings_widget_amount, "$goalCurrent / $goalTarget")
+                views.setTextViewText(R.id.savings_widget_pct, "${goalPct}% atteint")
+
+                // Couleur : vert vif si objectif atteint
+                val pctFloat = goalPct.toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
+                if (pctFloat >= 100f) {
+                    views.setTextColor(R.id.savings_widget_amount, Color.parseColor("#22C55E"))
+                } else {
+                    views.setTextColor(R.id.savings_widget_amount, Color.parseColor("#10B981"))
+                }
+
+                views.setInt(R.id.savings_progress, "setProgress", pctFloat.toInt())
+                views.setViewVisibility(R.id.savings_progress, android.view.View.VISIBLE)
+                views.setViewVisibility(R.id.savings_widget_pct, android.view.View.VISIBLE)
             } else {
-                views.setTextColor(R.id.savings_widget_amount, Color.parseColor("#10B981"))
+                // Aucun objectif configuré : état vide
+                views.setTextViewText(R.id.savings_widget_amount, "—")
+                views.setViewVisibility(R.id.savings_widget_name, android.view.View.GONE)
+                views.setViewVisibility(R.id.savings_progress, android.view.View.GONE)
+                views.setViewVisibility(R.id.savings_widget_pct, android.view.View.GONE)
             }
-
-            // Valeur de la barre de progression
-            views.setInt(R.id.savings_progress, "setProgress", pctFloat.toInt())
 
             // Tap → ouvre l'app
             views.setOnClickPendingIntent(
